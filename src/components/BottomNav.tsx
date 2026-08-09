@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import { useI18n } from '../lib/i18n'
 
 const Icon = {
   home: <path d="M4 10 12 3l8 7v10a1 1 0 0 1-1 1h-4v-7H9v7H5a1 1 0 0 1-1-1Z" />,
@@ -20,16 +21,16 @@ const Icon = {
   ),
 }
 
-const tabs = [
-  { to: '/', key: 'home' as const, label: 'Home' },
-  { to: '/places', key: 'places' as const, label: 'Places' },
-  { to: '/checkin', key: 'qr' as const, label: 'Check in' },
-  { to: '/activity', key: 'bell' as const, label: 'Alerts' },
-  { to: '/me', key: 'me' as const, label: 'Me' },
-]
-
 export function BottomNav({ unread = 0 }: { unread?: number }) {
   const { pathname } = useLocation()
+  const { t } = useI18n()
+  const tabs = [
+    { to: '/', key: 'home' as const, label: t('home') },
+    { to: '/places', key: 'places' as const, label: t('places') },
+    { to: '/checkin', key: 'qr' as const, label: t('checkin') },
+    { to: '/activity', key: 'bell' as const, label: t('alerts') },
+    { to: '/me', key: 'me' as const, label: t('me') },
+  ]
   return (
     <nav className="sticky bottom-0 z-50 border-t border-hair bg-bg/95 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[520px] items-end justify-around px-3 pb-[max(18px,env(safe-area-inset-bottom))] pt-3">

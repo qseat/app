@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import { RequireAuth } from './auth/RequireAuth'
@@ -13,6 +13,15 @@ import { BookingDetail } from './screens/BookingDetail'
 import { CheckIn } from './screens/CheckIn'
 import { Activity } from './screens/Activity'
 import { Profile } from './screens/Profile'
+import { Saved } from './screens/Saved'
+import { Review } from './screens/Review'
+import { I18nProvider } from './lib/i18n'
+import { Spinner } from './components/Spinner'
+
+// Leaflet is ~150 kB and only the map needs it, so it loads on demand.
+const MapScreen = lazy(() =>
+  import('./screens/MapScreen').then((m) => ({ default: m.MapScreen })),
+)
 
 function ScrollReset() {
   const { pathname } = useLocation()
@@ -24,6 +33,7 @@ function ScrollReset() {
 
 export default function App() {
   return (
+    <I18nProvider>
     <AuthProvider>
       <ScrollReset />
       <Routes>
@@ -42,11 +52,36 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/map"
+          element={
+            <Suspense fallback={<Spinner full label="Loading the map" />}>
+              <MapScreen />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/saved"
+          element={
+            <RequireAuth>
+              <Saved />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/review/:id"
+          element={
+            <RequireAuth>
+              <Review />
+            </RequireAuth>
+          }
+        />
         <Route path="/checkin" element={<CheckIn />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/me" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
+    </I18nProvider>
   )
 }

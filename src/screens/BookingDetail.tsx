@@ -13,11 +13,11 @@ export function BookingDetail() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function act(to: string, reason: string) {
+  async function act(to: string, reason: string, payload: Record<string, unknown> = {}) {
     setBusy(true)
     setError(null)
     try {
-      await transitionBooking(id, to, reason)
+      await transitionBooking(id, to, reason, payload)
       b.reload()
     } catch (e) {
       setError((e as Error).message)
@@ -113,9 +113,35 @@ export function BookingDetail() {
 
       {error && <p className="px-5 pt-4 text-[12.5px] leading-relaxed text-burg">{error}</p>}
 
-      {booking.status === 'confirmed' && (
+      {['confirmed', 'late_notified'].includes(booking.status) && (
         <Link to="/checkin" className="btn mx-5 mt-8 block">
           Show my code
+        </Link>
+      )}
+
+      {booking.status === 'confirmed' && (
+        <div className="mx-5 mt-3 flex gap-3">
+          {[10, 15, 30].map((m) => (
+            <button
+              key={m}
+              disabled={busy}
+              onClick={() => act('late_notified', `Guest running ${m} minutes late`, { delay_minutes: m })}
+              className="smallcaps flex-1 border border-hair2 py-3 text-[10px] text-goldt"
+            >
+              +{m} min
+            </button>
+          ))}
+        </div>
+      )}
+      {booking.status === 'confirmed' && (
+        <p className="px-8 pt-2 text-center text-[10.5px] leading-relaxed text-muted">
+          Running late? Tell the house and they'll hold your table.
+        </p>
+      )}
+
+      {['completed', 'checked_in', 'seated'].includes(booking.status) && (
+        <Link to={`/review/${booking.id}`} className="btn mx-5 mt-8 block">
+          Leave a note
         </Link>
       )}
 

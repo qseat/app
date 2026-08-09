@@ -4,7 +4,14 @@ import { Screen, TopBar } from '../components/Screen'
 import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
-import { acquireHold, createBooking, fetchAmenities, fetchSlots, fetchVenue } from '../data/queries'
+import {
+  acquireHold,
+  createBooking,
+  fetchAmenities,
+  fetchSlots,
+  fetchVenue,
+  joinWaitlist,
+} from '../data/queries'
 import { nextDays, reasonLabel, timeOf } from '../lib/format'
 import { useAuth } from '../auth/AuthProvider'
 import type { Slot } from '../data/types'
@@ -36,6 +43,7 @@ export function Book() {
   const [requests, setRequests] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [waitlisted, setWaitlisted] = useState<string | null>(null)
 
   const spaces = useMemo(
     () =>
@@ -61,6 +69,20 @@ export function Book() {
   const real = (slots.data ?? []).filter((s) => s.slot_start)
 
   useEffect(() => setSlotStart(null), [spaceId, dateKey, party])
+
+  async function waitlist(slot: string) {
+    if (!session) {
+      nav('/signin', { state: { from: `/book/${slug}` } })
+      return
+    }
+    setError(null)
+    try {
+      await joinWaitlist(v.data!.id, spaceId, slot, party)
+      setWaitlisted(slot)
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }
 
   async function submit() {
     if (!spaceId || !slotStart) return
@@ -150,21 +172,29 @@ export function Book() {
               {reasonLabel(sentinel?.unavailable_reason)}
             </p>
           )}
+          {real.some((s) => (s.remaining_capacity ?? 0) <= 0) && (
+            <p className="pb-3 text-[11px] leading-relaxed text-muted">
+              Dimmed times are full — tap one to join the waitlist and we'll tell you if it opens.
+            </p>
+          )}
           <div className="grid grid-cols-4 gap-2">
             {real.map((s) => {
               const full = (s.remaining_capacity ?? 0) <= 0
               const on = s.slot_start === slotStart
+              const queued = waitlisted === s.slot_start
               return (
                 <button
                   key={s.slot_start!}
-                  disabled={full}
-                  onClick={() => setSlotStart(s.slot_start!)}
+                  onClick={() => (full ? waitlist(s.slot_start!) : setSlotStart(s.slot_start!))}
+                  title={full ? 'Full — tap to join the waitlist' : undefined}
                   className={`h-10 border text-[12px] ${
                     on
                       ? 'border-gold bg-gold text-black'
-                      : full
-                        ? 'border-hair2 text-fg opacity-25'
-                        : 'border-hair2 text-fg'
+                      : queued
+                        ? 'border-gold text-goldt'
+                        : full
+                          ? 'border-hair2 text-fg opacity-40'
+                          : 'border-hair2 text-fg'
                   }`}
                 >
                   {timeOf(s.slot_start!)}
@@ -214,6 +244,11 @@ export function Book() {
         </Field>
       </div>
 
+      {waitlisted && (
+        <p className="px-5 pb-2 text-[12.5px] leading-relaxed text-goldt">
+          You're on the waitlist for {timeOf(waitlisted)}. We'll notify you if a table opens.
+        </p>
+      )}
       {error && <p className="px-5 pb-2 text-[12.5px] leading-relaxed text-burg">{error}</p>}
 
       <button className="btn mx-5 mt-2 block w-[calc(100%-40px)]" disabled={!slotStart || busy} onClick={submit}>

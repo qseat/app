@@ -7,17 +7,42 @@ import { Meridian } from '../components/Meridian'
 import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
-import { fetchAreas, fetchVenues, searchVenues } from '../data/queries'
+import {
+  fetchAreas,
+  fetchAvailabilitySummary,
+  fetchRatings,
+  fetchTaxonomies,
+  fetchVenuesFiltered,
+  searchVenues,
+  type VenueFilters,
+} from '../data/queries'
 import { mediaUrl } from '../lib/supabase'
-import type { VenueSummary } from '../data/types'
-
-/** Placeholder shape until a venue-level availability summary RPC exists. */
-const DEMO_PATTERN = [false, false, true, false, true, true, false, false, true, false, true, true]
+import { qatarDateKey, reasonLabel, timeOf } from '../lib/format'
+import { useI18n, localised } from '../lib/i18n'
+import { FilterSheet } from '../components/FilterSheet'
+import { FavouriteButton } from '../components/FavouriteButton'
+import type { AvailabilitySummary, VenueSummary } from '../data/types'
 
 export function Home() {
+  const { t, lang } = useI18n()
   const [term, setTerm] = useState('')
+  const [filters, setFilters] = useState<VenueFilters>({})
+  const [showFilters, setShowFilters] = useState(false)
+  const today = useMemo(() => qatarDateKey(new Date()), [])
+
   const areas = useAsync(fetchAreas, [])
-  const venues = useAsync(() => fetchVenues({ limit: 40 }), [])
+  const taxonomies = useAsync(fetchTaxonomies, [])
+  const venues = useAsync(() => fetchVenuesFiltered(filters), [JSON.stringify(filters)])
+  const ids = useMemo(() => (venues.data ?? []).map((v) => v.id), [venues.data])
+  const availability = useAsync(
+    () => fetchAvailabilitySummary(ids, today, 2),
+    [ids.join(','), today],
+  )
+  const ratings = useAsync(() => fetchRatings(ids), [ids.join(',')])
+  const activeFilterCount =
+    (filters.categoryIds?.length ?? 0) +
+    (filters.amenityIds?.length ?? 0) +
+    (filters.priceBands?.length ?? 0)
   const results = useAsync(
     () => (term.trim().length > 1 ? searchVenues(term.trim()) : Promise.resolve(null)),
     [term],
@@ -50,6 +75,23 @@ export function Home() {
             </button>
           )}
         </div>
+        <div className="mt-3 flex gap-2">
+          <button
+            onClick={() => setShowFilters(true)}
+            className={`smallcaps h-9 flex-1 border text-[9.5px] ${
+              activeFilterCount ? 'border-gold text-goldt' : 'border-hair2 text-muted'
+            }`}
+          >
+            {t('filters')}
+            {activeFilterCount ? ` · ${activeFilterCount}` : ''}
+          </button>
+          <Link
+            to="/map"
+            className="smallcaps grid h-9 flex-1 place-items-center border border-hair2 text-[9.5px] text-muted"
+          >
+            {t('map')}
+          </Link>
+        </div>
       </div>
 
       {searching ? (
@@ -66,7 +108,7 @@ export function Home() {
           {venues.loading && <Spinner label="Loading tonight" />}
           {venues.error && <Empty title="Couldn’t load" note={venues.error} />}
 
-          {hero && <Hero venue={hero} />}
+          {hero && <Hero venue={hero} summary={availability.data?.[hero.id] ?? null} lang={lang} />}
 
           {areas.data && areas.data.length > 0 && (
             <>
@@ -102,18 +144,30 @@ export function Home() {
             <>
               <SectionHead label="Open near you" />
               <div className="px-5">
-                {rest.slice(0, 6).map((v) => (
-                  <VenueRow key={v.id} venue={v} pattern={DEMO_PATTERN.slice(0, 10)} />
+                {rest.slice(0, 8).map((v) => (
+                  <VenueRow
+                    key={v.id}
+                    venue={v}
+                    pattern={availability.data?.[v.id]?.pattern ?? undefined}
+                    rating={ratings.data?.[v.id]?.rating}
+                    note={
+                      availability.data?.[v.id]
+                        ? availability.data[v.id].open_slots > 0
+                          ? `From ${timeOf(availability.data[v.id].next_slot!)}`
+                          : reasonLabel(availability.data[v.id].reason)
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             </>
           )}
 
-          {rest.length > 6 && (
+          {rest.length > 8 && (
             <>
-              <SectionHead label="Also tonight" />
+              <SectionHead label={t('alsoTonight')} />
               <div className="flex gap-3 overflow-x-auto px-5 pb-2 no-scrollbar">
-                {rest.slice(6).map((v) => (
+                {rest.slice(8).map((v) => (
                   <VenueTile key={v.id} venue={v} />
                 ))}
               </div>
@@ -122,26 +176,61 @@ export function Home() {
           <div className="h-8" />
         </>
       )}
+
+      {taxonomies.data && (
+        <FilterSheet
+          open={showFilters}
+          onClose={() => setShowFilters(false)}
+          taxonomies={taxonomies.data}
+          value={filters}
+          onApply={setFilters}
+        />
+      )}
     </Screen>
   )
 }
 
-function Hero({ venue }: { venue: VenueSummary }) {
+function Hero({
+  venue,
+  summary,
+  lang,
+}: {
+  venue: VenueSummary
+  summary: AvailabilitySummary | null
+  lang: 'en' | 'ar'
+}) {
   const media = (venue.venue_media ?? []).filter((m) => m.media_type === 'photo')
   const img = mediaUrl((media.find((m) => m.is_cover) ?? media[0])?.storage_path)
+  const open = summary?.open_slots ?? 0
   return (
-    <Link to={`/venue/${venue.slug}`} className="relative mt-4 block h-[420px]">
-      <div className="absolute inset-0 bg-card2">
-        {img && <img src={img} alt="" className="h-full w-full object-cover" />}
-      </div>
-      <div className="scrim absolute inset-0" />
-      <div className="absolute inset-x-5 bottom-6">
-        <p className="eyebrow">Tonight in {venue.areas?.name_en}</p>
-        <h2 className="mt-2 font-display text-[34px] leading-none text-white">{venue.name_en}</h2>
-        <div className="mt-4">
-          <Meridian pattern={DEMO_PATTERN} labels={['18:00', 'Tap to see tonight', '01:00']} />
+    <div className="relative mt-4 h-[420px]">
+      <Link to={`/venue/${venue.slug}`} className="absolute inset-0 block">
+        <div className="absolute inset-0 bg-card2">
+          {img && <img src={img} alt="" className="h-full w-full object-cover" />}
         </div>
+        <div className="scrim absolute inset-0" />
+      </Link>
+      <div className="absolute right-4 top-4 z-10">
+        <FavouriteButton venueId={venue.id} floating />
       </div>
-    </Link>
+      <Link to={`/venue/${venue.slug}`} className="absolute inset-x-5 bottom-6 block">
+        <p className="eyebrow">Tonight in {venue.areas?.name_en}</p>
+        <h2 className="mt-2 font-display text-[34px] leading-none text-white">
+          {localised(lang, venue.name_en, venue.name_ar)}
+        </h2>
+        {summary?.pattern && (
+          <div className="mt-4">
+            <Meridian
+              pattern={summary.pattern}
+              labels={[
+                summary.next_slot ? timeOf(summary.next_slot) : '',
+                open > 0 ? `${open} ${open === 1 ? 'table' : 'tables'} open` : reasonLabel(summary.reason),
+                '',
+              ]}
+            />
+          </div>
+        )}
+      </Link>
+    </div>
   )
 }

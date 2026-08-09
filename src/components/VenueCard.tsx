@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { mediaUrl } from '../lib/supabase'
 import type { VenueSummary } from '../data/types'
 import { Meridian } from './Meridian'
+import { FavouriteButton } from './FavouriteButton'
 
 function cover(v: VenueSummary) {
   const media = (v.venue_media ?? []).filter((m) => m.media_type === 'photo')
@@ -11,26 +12,43 @@ function cover(v: VenueSummary) {
 
 const band = (n: number | null) => (n ? '·'.repeat(0) + '$'.repeat(n) : '')
 
-export function VenueRow({ venue, pattern }: { venue: VenueSummary; pattern?: boolean[] }) {
+export function VenueRow({
+  venue,
+  pattern,
+  rating,
+  note,
+}: {
+  venue: VenueSummary
+  pattern?: boolean[]
+  rating?: number
+  note?: string
+}) {
   const img = cover(venue)
   return (
-    <Link to={`/venue/${venue.slug}`} className="flex gap-4 border-b border-hair2 py-4">
-      <div className="h-24 w-[76px] flex-none bg-card2">
+    <div className="flex gap-4 border-b border-hair2 py-4">
+      <Link to={`/venue/${venue.slug}`} className="h-24 w-[76px] flex-none bg-card2">
         {img && <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />}
-      </div>
+      </Link>
       <div className="min-w-0 flex-1">
-        <h4 className="font-display text-xl leading-tight text-fg">{venue.name_en}</h4>
-        <p className="smallcaps mt-1 text-[9.5px] text-muted">
-          {venue.areas?.name_en}
-          {venue.price_band ? ` · ${band(venue.price_band)}` : ''}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <Link to={`/venue/${venue.slug}`} className="min-w-0 flex-1">
+            <h4 className="truncate font-display text-xl leading-tight text-fg">{venue.name_en}</h4>
+            <p className="smallcaps mt-1 text-[9.5px] text-muted">
+              {venue.areas?.name_en}
+              {venue.price_band ? ` · ${band(venue.price_band)}` : ''}
+              {rating ? ` · ${rating.toFixed(1)}` : ''}
+            </p>
+          </Link>
+          <FavouriteButton venueId={venue.id} />
+        </div>
         {pattern && pattern.length > 0 && (
-          <div className="mt-3">
+          <Link to={`/venue/${venue.slug}`} className="mt-3 block">
             <Meridian pattern={pattern} />
-          </div>
+          </Link>
         )}
+        {note && <p className="smallcaps mt-2 text-[8.5px] text-goldt">{note}</p>}
       </div>
-    </Link>
+    </div>
   )
 }
 

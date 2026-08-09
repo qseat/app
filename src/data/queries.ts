@@ -229,3 +229,310 @@ export async function saveProfile(userId: string, patch: Partial<Profile>) {
 function isMissingRelation(error: { code?: string; message?: string }) {
   return error.code === '42P01' || /relation .*profiles.* does not exist/i.test(error.message ?? '')
 }
+
+/* ============================================================================
+ * Slice two — availability summaries, favourites, lists, reviews, waitlist,
+ * map points and filter taxonomies. Requires migration 0018_app_support.sql.
+ * Every function degrades to an empty result if the migration is not applied,
+ * so the app keeps working while the database catches up.
+ * ========================================================================= */
+
+import type {
+  AvailabilitySummary,
+  Rating,
+  Review,
+  SavedList,
+  Taxonomy,
+  VenuePoint,
+  WaitlistEntry,
+} from './types'
+
+function missing(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return (
+    error.code === '42P01' ||
+    error.code === 'PGRST202' ||
+    /does not exist|could not find/i.test(error.message ?? '')
+  )
+}
+
+export async function fetchAvailabilitySummary(
+  venueIds: string[],
+  dateKey: string,
+  partySize = 2,
+): Promise<Record<string, AvailabilitySummary>> {
+  if (!venueIds.length) return {}
+  const { data, error } = await supabase.rpc('get_venue_availability_summary', {
+    p_venue_ids: venueIds,
+    p_date: dateKey,
+    p_party_size: partySize,
+  })
+  if (error) {
+    if (missing(error)) return {}
+    throw error
+  }
+  const out: Record<string, AvailabilitySummary> = {}
+  for (const row of (data ?? []) as AvailabilitySummary[]) out[row.venue_id] = row
+  return out
+}
+
+export async function fetchRatings(venueIds: string[]): Promise<Record<string, Rating>> {
+  if (!venueIds.length) return {}
+  const { data, error } = await supabase.rpc('get_venue_ratings', { p_venue_ids: venueIds })
+  if (error) {
+    if (missing(error)) return {}
+    throw error
+  }
+  const out: Record<string, Rating> = {}
+  for (const r of (data ?? []) as Rating[]) out[r.venue_id] = r
+  return out
+}
+
+/* ---- favourites ---- */
+
+export async function fetchFavouriteIds(): Promise<string[]> {
+  const { data, error } = await supabase.from('favourites').select('venue_id')
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []).map((r: { venue_id: string }) => r.venue_id)
+}
+
+export async function toggleFavourite(venueId: string, on: boolean) {
+  if (on) {
+    const { data: me } = await supabase.auth.getUser()
+    if (!me.user) throw new Error('Sign in to save places')
+    const { error } = await supabase
+      .from('favourites')
+      .insert({ user_id: me.user.id, venue_id: venueId })
+    if (error && error.code !== '23505' && !missing(error)) throw error
+  } else {
+    const { error } = await supabase.from('favourites').delete().eq('venue_id', venueId)
+    if (error && !missing(error)) throw error
+  }
+}
+
+export async function fetchFavouriteVenues(): Promise<VenueSummary[]> {
+  const ids = await fetchFavouriteIds()
+  if (!ids.length) return []
+  const { data, error } = await supabase
+    .from('venues')
+    .select(VENUE_CARD)
+    .eq('status', 'published')
+    .in('id', ids)
+  if (error) throw error
+  return (data ?? []) as unknown as VenueSummary[]
+}
+
+/* ---- saved lists ---- */
+
+export async function fetchLists(): Promise<SavedList[]> {
+  const { data, error } = await supabase
+    .from('saved_lists')
+    .select('id, name, saved_list_items(venue_id)')
+    .order('created_at', { ascending: true })
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as unknown as SavedList[]
+}
+
+export async function createList(name: string): Promise<string> {
+  const { data: me } = await supabase.auth.getUser()
+  if (!me.user) throw new Error('Sign in first')
+  const { data, error } = await supabase
+    .from('saved_lists')
+    .insert({ user_id: me.user.id, name })
+    .select('id')
+    .single()
+  if (error) throw error
+  return (data as { id: string }).id
+}
+
+export async function addToList(listId: string, venueId: string) {
+  const { error } = await supabase
+    .from('saved_list_items')
+    .insert({ list_id: listId, venue_id: venueId })
+  if (error && error.code !== '23505') throw error
+}
+
+export async function removeFromList(listId: string, venueId: string) {
+  const { error } = await supabase
+    .from('saved_list_items')
+    .delete()
+    .eq('list_id', listId)
+    .eq('venue_id', venueId)
+  if (error) throw error
+}
+
+/* ---- reviews ---- */
+
+export async function fetchVenueReviews(venueId: string): Promise<Review[]> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id, booking_id, venue_id, overall, service, ambience, value_rating, body, created_at')
+    .eq('venue_id', venueId)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as Review[]
+}
+
+export interface ReviewInput {
+  bookingId: string
+  venueId: string
+  overall: number
+  service?: number | null
+  ambience?: number | null
+  value?: number | null
+  body?: string | null
+}
+
+export async function submitReview(input: ReviewInput) {
+  const { data: me } = await supabase.auth.getUser()
+  if (!me.user) throw new Error('Sign in first')
+  const { error } = await supabase.from('reviews').insert({
+    booking_id: input.bookingId,
+    venue_id: input.venueId,
+    user_id: me.user.id,
+    overall: input.overall,
+    service: input.service ?? null,
+    ambience: input.ambience ?? null,
+    value_rating: input.value ?? null,
+    body: input.body?.trim() || null,
+  })
+  if (error) throw error
+}
+
+export async function fetchMyReviewFor(bookingId: string): Promise<Review | null> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id, booking_id, venue_id, overall, service, ambience, value_rating, body, created_at')
+    .eq('booking_id', bookingId)
+    .maybeSingle()
+  if (error) {
+    if (missing(error)) return null
+    throw error
+  }
+  return (data ?? null) as Review | null
+}
+
+/* ---- waitlist (BOOK-14) ---- */
+
+export async function joinWaitlist(
+  venueId: string,
+  spaceId: string | null,
+  desiredSlotStart: string,
+  partySize: number,
+) {
+  const { data: me } = await supabase.auth.getUser()
+  if (!me.user) throw new Error('Sign in first')
+  const { error } = await supabase.from('waitlist_entries').insert({
+    venue_id: venueId,
+    space_id: spaceId,
+    desired_slot_start: desiredSlotStart,
+    party_size: partySize,
+    guest_id: me.user.id,
+  })
+  if (error) throw error
+}
+
+export async function fetchMyWaitlist(): Promise<WaitlistEntry[]> {
+  const { data, error } = await supabase
+    .from('waitlist_entries')
+    .select('id, venue_id, space_id, desired_slot_start, party_size, status')
+    .order('desired_slot_start', { ascending: true })
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as WaitlistEntry[]
+}
+
+/* ---- map (DISC-05) ---- */
+
+/**
+ * PostgREST cannot return a geography column usefully, so coordinates come from
+ * a lightweight view/RPC if one exists, and otherwise fall back to nothing —
+ * the map then shows the area centroid only.
+ */
+export async function fetchVenuePoints(): Promise<VenuePoint[]> {
+  const { data, error } = await supabase.rpc('get_venue_points')
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as VenuePoint[]
+}
+
+/* ---- filter taxonomies (DISC-08) ---- */
+
+export async function fetchTaxonomies(): Promise<{
+  categories: Taxonomy[]
+  vibes: Taxonomy[]
+  cuisines: Taxonomy[]
+  amenities: Taxonomy[]
+}> {
+  const pick = (t: string) =>
+    supabase.from(t).select('id, slug, name_en').eq('is_active', true).order('display_order', {
+      ascending: true,
+      nullsFirst: false,
+    })
+  const [c, v, cu, a] = await Promise.all([
+    pick('categories'),
+    pick('vibes'),
+    pick('cuisines'),
+    pick('amenities'),
+  ])
+  const val = (r: { data: unknown; error: unknown }) =>
+    (r.error ? [] : ((r.data ?? []) as Taxonomy[]))
+  return {
+    categories: val(c),
+    vibes: val(v),
+    cuisines: val(cu),
+    amenities: val(a),
+  }
+}
+
+export interface VenueFilters {
+  areaId?: string | null
+  categoryIds?: string[]
+  amenityIds?: string[]
+  priceBands?: number[]
+}
+
+export async function fetchVenuesFiltered(f: VenueFilters): Promise<VenueSummary[]> {
+  let q = supabase.from('venues').select(VENUE_CARD).eq('status', 'published')
+  if (f.areaId) q = q.eq('area_id', f.areaId)
+  if (f.priceBands?.length) q = q.in('price_band', f.priceBands)
+  const { data, error } = await q.limit(60)
+  if (error) throw error
+  let rows = (data ?? []) as unknown as VenueSummary[]
+
+  // Category and amenity live in join tables. Filtering client-side keeps this
+  // to one round trip at launch volumes; move it into an RPC once the catalogue
+  // grows past a few hundred venues.
+  if (f.categoryIds?.length) {
+    const { data: links } = await supabase
+      .from('venue_categories')
+      .select('venue_id')
+      .in('category_id', f.categoryIds)
+    const ok = new Set((links ?? []).map((r: { venue_id: string }) => r.venue_id))
+    rows = rows.filter((v) => ok.has(v.id))
+  }
+  if (f.amenityIds?.length) {
+    const { data: links } = await supabase
+      .from('venue_amenities')
+      .select('venue_id')
+      .in('amenity_id', f.amenityIds)
+    const ok = new Set((links ?? []).map((r: { venue_id: string }) => r.venue_id))
+    rows = rows.filter((v) => ok.has(v.id))
+  }
+  return rows
+}

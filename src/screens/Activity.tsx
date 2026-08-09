@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import { Screen } from '../components/Screen'
 import { BottomNav } from '../components/BottomNav'
 import { Spinner } from '../components/Spinner'
@@ -17,6 +19,23 @@ export function Activity() {
     () => (session ? fetchMyBookings() : Promise.resolve([])),
     [session?.user.id],
   )
+
+  // A venue's reply should land without a pull-to-refresh. RLS applies to
+  // realtime too, so only rows this guest may already read are delivered.
+  useEffect(() => {
+    if (!session) return
+    const channel = supabase
+      .channel('my-bookings')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bookings', filter: `guest_id=eq.${session.user.id}` },
+        () => bookings.reload(),
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [session?.user.id])
 
   if (!session)
     return (

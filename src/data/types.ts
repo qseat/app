@@ -92,3 +92,58 @@ export interface Profile {
   phone: string | null
   preferred_language: string | null
 }
+
+export interface AvailabilitySummary {
+  venue_id: string
+  open_slots: number
+  next_slot: string | null
+  pattern: boolean[] | null
+  reason: string | null
+}
+
+export interface Rating {
+  venue_id: string
+  rating: number
+  review_count: number
+}
+
+export interface Review {
+  id: string
+  booking_id: string
+  venue_id: string
+  overall: number
+  service: number | null
+  ambience: number | null
+  value_rating: number | null
+  body: string | null
+  created_at: string
+}
+
+export interface SavedList {
+  id: string
+  name: string
+  saved_list_items?: { venue_id: string }[]
+}
+
+export interface WaitlistEntry {
+  id: string
+  venue_id: string
+  space_id: string | null
+  desired_slot_start: string
+  party_size: number
+  status: string
+}
+
+export interface VenuePoint {
+  id: string
+  slug: string
+  name_en: string
+  lat: number
+  lng: number
+}
+
+export interface Taxonomy {
+  id: string
+  slug: string
+  name_en: string
+}

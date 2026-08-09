@@ -5,16 +5,30 @@ import { BottomNav } from '../components/BottomNav'
 import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
-import { fetchVenue } from '../data/queries'
+import { fetchVenue, fetchRatings, fetchVenueReviews } from '../data/queries'
 import { mediaUrl } from '../lib/supabase'
-import type { VenueSpace } from '../data/types'
+import { useI18n, localised } from '../lib/i18n'
+import { FavouriteButton } from '../components/FavouriteButton'
+import { dateOf } from '../lib/format'
+import type { Rating, Review, VenueSpace } from '../data/types'
+import { useAsync as useAsync2 } from '../lib/useAsync'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const hhmm = (t: string) => t.slice(0, 5)
 
 export function Venue() {
   const { slug = '' } = useParams()
+  const { t, lang } = useI18n()
   const v = useAsync(() => fetchVenue(slug), [slug])
+  const venueId = v.data?.id ?? null
+  const ratings = useAsync2<Record<string, Rating>>(
+    () => (venueId ? fetchRatings([venueId]) : Promise.resolve({} as Record<string, Rating>)),
+    [venueId],
+  )
+  const reviews = useAsync2<Review[]>(
+    () => (venueId ? fetchVenueReviews(venueId) : Promise.resolve([] as Review[])),
+    [venueId],
+  )
   const [shot, setShot] = useState(0)
   const [open, setOpen] = useState<string | null>('hours')
 
@@ -70,9 +84,14 @@ export function Venue() {
             ))}
           </div>
         )}
+        <div className="absolute right-5 top-[max(52px,env(safe-area-inset-top))] z-10">
+          <FavouriteButton venueId={venue.id} floating />
+        </div>
         <div className="absolute inset-x-5 bottom-5">
           <p className="eyebrow">{venue.areas?.name_en}</p>
-          <h1 className="mt-2 font-display text-[36px] leading-none text-white">{venue.name_en}</h1>
+          <h1 className="mt-2 font-display text-[36px] leading-none text-white">
+            {localised(lang, venue.name_en, venue.name_ar)}
+          </h1>
           {venue.name_ar && (
             <p className="mt-1 text-[15px] text-white/70" dir="rtl">
               {venue.name_ar}
@@ -99,13 +118,26 @@ export function Venue() {
         />
       </div>
 
-      {venue.description_en && (
-        <p className="px-5 pt-5 text-[13px] leading-[1.75] text-fg2">{venue.description_en}</p>
+      {ratings.data?.[venue.id] && (
+        <div className="flex items-baseline gap-3 px-5 pt-6">
+          <span className="font-display text-[38px] leading-none text-goldt">
+            {ratings.data[venue.id].rating.toFixed(1)}
+          </span>
+          <span className="smallcaps text-[9px] text-muted">
+            from {ratings.data[venue.id].review_count} visits
+          </span>
+        </div>
+      )}
+
+      {localised(lang, venue.description_en, venue.description_ar) && (
+        <p className="px-5 pt-5 text-[13px] leading-[1.75] text-fg2">
+          {localised(lang, venue.description_en, venue.description_ar)}
+        </p>
       )}
 
       {spaces.length > 0 && (
         <>
-          <SectionHead label="Choose a room" />
+          <SectionHead label={t('chooseRoom')} />
           <div className="flex gap-3 overflow-x-auto px-5 no-scrollbar">
             {spaces.map((s) => (
               <SpaceCard key={s.id} space={s} venueSlug={venue.slug} />
@@ -117,7 +149,7 @@ export function Venue() {
       <div className="px-5 pt-7">
         <Accordion
           id="hours"
-          title="Hours"
+          title={t('hours')}
           open={open === 'hours'}
           onToggle={() => setOpen(open === 'hours' ? null : 'hours')}
         >
@@ -141,7 +173,7 @@ export function Venue() {
         {venue.address_en && (
           <Accordion
             id="where"
-            title="Where"
+            title={t('where')}
             open={open === 'where'}
             onToggle={() => setOpen(open === 'where' ? null : 'where')}
           >
@@ -150,9 +182,30 @@ export function Venue() {
         )}
       </div>
 
+      {(reviews.data?.length ?? 0) > 0 && (
+        <>
+          <SectionHead label={t('reviews')} />
+          <div className="px-5">
+            {reviews.data!.slice(0, 4).map((r) => (
+              <div key={r.id} className="border-b border-hair2 py-4">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-[20px] text-goldt">{r.overall}</span>
+                  <span className="smallcaps text-[8.5px] text-muted">{dateOf(r.created_at)}</span>
+                </div>
+                {r.body && (
+                  <p className="mt-2 font-display text-[15px] italic leading-relaxed text-fg2">
+                    {r.body}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {spaces.length > 0 && (
         <Link to={`/book/${venue.slug}`} className="btn mx-5 mt-7 block">
-          Reserve a table
+          {t('reserve')}
         </Link>
       )}
       <p className="px-8 pt-4 text-center text-[10.5px] leading-relaxed text-muted">

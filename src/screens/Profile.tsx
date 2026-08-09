@@ -6,6 +6,7 @@ import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
 import { fetchProfile, saveProfile } from '../data/queries'
 import { useAuth } from '../auth/AuthProvider'
+import { useI18n } from '../lib/i18n'
 
 const THEMES = [
   { v: 'nocturne', l: 'Dark' },
@@ -14,6 +15,7 @@ const THEMES = [
 
 export function Profile() {
   const { session, user, signOut } = useAuth()
+  const { t, lang, setLang } = useI18n()
   const profile = useAsync(
     () => (user ? fetchProfile(user.id) : Promise.resolve(null)),
     [user?.id],
@@ -102,7 +104,29 @@ export function Profile() {
           </p>
         )}
 
-        <p className="eyebrow pb-3 pt-9">Appearance</p>
+        <Link
+          to="/saved"
+          className="mt-9 flex items-center justify-between border-y border-hair2 py-4 text-[13.5px] text-fg"
+        >
+          {t('favourites')} <span className="text-muted">›</span>
+        </Link>
+
+        <p className="eyebrow pb-3 pt-9">{t('language')}</p>
+        <div className="flex border border-hair2">
+          {(['en', 'ar'] as const).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`smallcaps flex-1 py-2.5 text-[10px] ${
+                lang === l ? 'bg-gold text-black' : 'text-muted'
+              }`}
+            >
+              {l === 'en' ? 'English' : 'العربية'}
+            </button>
+          ))}
+        </div>
+
+        <p className="eyebrow pb-3 pt-9">{t('appearance')}</p>
         <div className="flex border border-hair2">
           {THEMES.map((t) => (
             <button
@@ -117,7 +141,7 @@ export function Profile() {
           ))}
         </div>
 
-        <p className="eyebrow pb-1 pt-9">Legal</p>
+        <p className="eyebrow pb-1 pt-9">{t('legal')}</p>
         <a
           href="https://web.qseat.qa/terms"
           className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
@@ -138,7 +162,7 @@ export function Profile() {
         </a>
 
         <button className="btn btn-ghost mt-9 w-full" onClick={signOut}>
-          Sign out
+          {t('signOut')}
         </button>
         <p className="smallcaps py-8 text-center text-[9px] text-muted">
           QSeat 0.1 · Developed by Odysense
