@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme='nocturne'] {
+  --bg: #0b0b0c;
+  --card: #141416;
+  --card2: #1b1b1e;
+  --fg: #f2efe9;
+  --fg2: #cfcbc3;
+  --muted: #7e7c77;
+  --gold: #c8a961;
+  --gold-text: #c8a961;
+  --hair: rgba(200, 169, 97, 0.2);
+  --hair2: rgba(242, 239, 233, 0.09);
+  --burg: #7c2231;
+  --btn: #c8a961;
+  --btn-fg: #0b0b0c;
+  color-scheme: dark;
+}
+
+/* Light variant of Nocturne, kept for parity with the portals' theme switch. */
+[data-theme='nocturne-light'] {
+  --bg: #faf8f5;
+  --card: #ffffff;
+  --card2: #f2eee8;
+  --fg: #16161a;
+  --fg2: #3a3a3e;
+  --muted: #8b8880;
+  --gold: #c8a961;
+  --gold-text: #8f7238;
+  --hair: rgba(143, 114, 56, 0.22);
+  --hair2: rgba(22, 22, 26, 0.09);
+  --burg: #6b1f2a;
+  --btn: #16161a;
+  --btn-fg: #faf8f5;
+  color-scheme: light;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: #000;
+  color: var(--fg);
+  font-family: Jost, system-ui, sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+}
+.smallcaps {
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.btn {
+  display: grid;
+  place-items: center;
+  height: 54px;
+  background: var(--btn);
+  color: var(--btn-fg);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.8; }
+.btn:disabled { opacity: 0.35; }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--gold-text);
+  color: var(--gold-text);
+}
+.field {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--card);
+  border: 1px solid var(--hair);
+  color: var(--fg);
+  font-size: 14px;
+}
+.field::placeholder { color: var(--muted); }
+.field:focus { outline: none; border-color: var(--gold); }
+.scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(11, 11, 12, 0.15) 0%,
+    rgba(11, 11, 12, 0) 30%,
+    rgba(11, 11, 12, 0.95) 100%
+  );
+}
+@keyframes fade-up { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+.fade-up { animation: fade-up 0.3s ease both; }

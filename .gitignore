@@ -1,0 +1,14 @@
+node_modules
+dist
+.vercel
+.DS_Store
+*.local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+id_rsa*
+id_ed25519*
