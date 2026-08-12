@@ -5,6 +5,8 @@ export interface Area {
   name_ar: string | null
   description_en: string | null
   hero_media_url: string | null
+  hero_focal_x?: number | null
+  hero_focal_y?: number | null
   display_order: number | null
 }
 
@@ -13,6 +15,8 @@ export interface VenueMedia {
   media_type: string
   is_cover: boolean | null
   display_order: number | null
+  focal_x?: number | null
+  focal_y?: number | null
 }
 
 export interface VenueSummary {
@@ -38,7 +42,12 @@ export interface VenueSpace {
   max_party: number
   is_active: boolean | null
   display_order: number | null
-  space_media?: { storage_path: string; is_cover: boolean | null }[]
+  space_media?: {
+    storage_path: string
+    is_cover: boolean | null
+    focal_x?: number | null
+    focal_y?: number | null
+  }[]
 }
 
 export interface VenueHours {
@@ -132,6 +141,8 @@ export interface WaitlistEntry {
   desired_slot_start: string
   party_size: number
   status: string
+  claim_expires_at?: string | null
+  venues?: { name_en: string; slug: string } | null
 }
 
 export interface VenuePoint {

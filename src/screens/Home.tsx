@@ -13,10 +13,12 @@ import {
   fetchRatings,
   fetchTaxonomies,
   fetchVenuesFiltered,
+  fetchCollections,
+  fetchTrendingTerms,
   searchVenues,
   type VenueFilters,
 } from '../data/queries'
-import { mediaUrl } from '../lib/supabase'
+import { mediaUrl, focalStyle, W } from '../lib/media'
 import { qatarDateKey, reasonLabel, timeOf } from '../lib/format'
 import { useI18n, localised } from '../lib/i18n'
 import { FilterSheet } from '../components/FilterSheet'
@@ -39,6 +41,8 @@ export function Home() {
     [ids.join(','), today],
   )
   const ratings = useAsync(() => fetchRatings(ids), [ids.join(',')])
+  const trending = useAsync(fetchTrendingTerms, [])
+  const collections = useAsync(fetchCollections, [])
   const activeFilterCount =
     (filters.categoryIds?.length ?? 0) +
     (filters.amenityIds?.length ?? 0) +
@@ -94,6 +98,20 @@ export function Home() {
         </div>
       </div>
 
+      {!searching && (trending.data?.length ?? 0) > 0 && (
+        <div className="flex gap-2 overflow-x-auto px-5 pt-4 no-scrollbar">
+          {trending.data!.map((term) => (
+            <button
+              key={term}
+              onClick={() => setTerm(term)}
+              className="h-8 flex-none whitespace-nowrap border border-hair2 px-3 text-[11px] text-muted"
+            >
+              {term}
+            </button>
+          ))}
+        </div>
+      )}
+
       {searching ? (
         <div className="px-5">
           <SectionHead label={results.loading ? 'Searching' : `${results.data?.length ?? 0} places`} />
@@ -124,12 +142,13 @@ export function Home() {
                 {areas.data.map((a) => (
                   <Link key={a.id} to={`/area/${a.slug}`} className="w-[104px] flex-none">
                     <div className="h-[132px] bg-card2">
-                      {mediaUrl(a.hero_media_url) && (
+                      {mediaUrl(a.hero_media_url, { width: 240, height: 300 }, 'area') && (
                         <img
-                          src={mediaUrl(a.hero_media_url)!}
+                          src={mediaUrl(a.hero_media_url, { width: 240, height: 300 }, 'area')!}
                           alt=""
                           loading="lazy"
                           className="h-full w-full object-cover"
+                          style={focalStyle(a.hero_focal_x, a.hero_focal_y)}
                         />
                       )}
                     </div>
@@ -158,6 +177,37 @@ export function Home() {
                         : undefined
                     }
                   />
+                ))}
+              </div>
+            </>
+          )}
+
+          {(collections.data?.length ?? 0) > 0 && (
+            <>
+              <SectionHead label="Collections" />
+              <div className="flex gap-3 overflow-x-auto px-5 no-scrollbar">
+                {collections.data!.map((c) => (
+                  <Link key={c.id} to={`/collection/${c.slug}`} className="w-[220px] flex-none">
+                    <div className="relative h-[130px] bg-card2">
+                      {mediaUrl(c.cover_path, { width: 440, height: 260 }) && (
+                        <img
+                          src={mediaUrl(c.cover_path, { width: 440, height: 260 })!}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                      <div className="absolute inset-x-3 bottom-3">
+                        <p className="font-display text-[17px] leading-tight text-white">
+                          {localised(lang, c.title_en, c.title_ar)}
+                        </p>
+                      </div>
+                    </div>
+                    {c.subtitle_en && (
+                      <p className="mt-2 text-[11.5px] leading-relaxed text-muted">{c.subtitle_en}</p>
+                    )}
+                  </Link>
                 ))}
               </div>
             </>
@@ -200,13 +250,21 @@ function Hero({
   lang: 'en' | 'ar'
 }) {
   const media = (venue.venue_media ?? []).filter((m) => m.media_type === 'photo')
-  const img = mediaUrl((media.find((m) => m.is_cover) ?? media[0])?.storage_path)
+  const pick = media.find((m) => m.is_cover) ?? media[0]
+  const img = mediaUrl(pick?.storage_path, { width: W.hero, height: 1180 })
   const open = summary?.open_slots ?? 0
   return (
     <div className="relative mt-4 h-[420px]">
       <Link to={`/venue/${venue.slug}`} className="absolute inset-0 block">
         <div className="absolute inset-0 bg-card2">
-          {img && <img src={img} alt="" className="h-full w-full object-cover" />}
+          {img && (
+            <img
+              src={img}
+              alt=""
+              className="h-full w-full object-cover"
+              style={focalStyle(pick?.focal_x, pick?.focal_y)}
+            />
+          )}
         </div>
         <div className="scrim absolute inset-0" />
       </Link>

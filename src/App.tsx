@@ -12,6 +12,9 @@ import { Book } from './screens/Book'
 import { BookingDetail } from './screens/BookingDetail'
 import { CheckIn } from './screens/CheckIn'
 import { Activity } from './screens/Activity'
+import { Notifications } from './screens/Notifications'
+import { Waitlist } from './screens/Waitlist'
+import { Collection } from './screens/Collection'
 import { Profile } from './screens/Profile'
 import { Saved } from './screens/Saved'
 import { Review } from './screens/Review'
@@ -42,6 +45,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/places" element={<Places />} />
         <Route path="/area/:slug" element={<AreaDetail />} />
+        <Route path="/collection/:slug" element={<Collection />} />
         <Route path="/venue/:slug" element={<Venue />} />
         <Route path="/book/:slug" element={<Book />} />
         <Route
@@ -77,7 +81,16 @@ export default function App() {
           }
         />
         <Route path="/checkin" element={<CheckIn />} />
-        <Route path="/activity" element={<Activity />} />
+        <Route path="/activity" element={<Notifications />} />
+        <Route path="/bookings" element={<Activity />} />
+        <Route
+          path="/waitlist"
+          element={
+            <RequireAuth>
+              <Waitlist />
+            </RequireAuth>
+          }
+        />
         <Route path="/me" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

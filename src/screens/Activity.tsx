@@ -83,7 +83,7 @@ function Header() {
   return (
     <div className="px-5 pb-2 pt-[max(52px,env(safe-area-inset-top))]">
       <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
-        Alerts
+        Bookings
       </p>
     </div>
   )

@@ -16,13 +16,13 @@ const SPACE_EMBED = 'venue_spaces!bookings_space_belongs_to_venue(name_en)'
 const VENUE_CARD = `
   id, slug, name_en, name_ar, price_band, area_id,
   areas(name_en, slug),
-  venue_media(storage_path, media_type, is_cover, display_order)
+  venue_media(storage_path, media_type, is_cover, display_order, focal_x, focal_y)
 `
 
 export async function fetchAreas(): Promise<Area[]> {
   const { data, error } = await supabase
     .from('areas')
-    .select('id, slug, name_en, name_ar, description_en, hero_media_url, display_order')
+    .select('id, slug, name_en, name_ar, description_en, hero_media_url, hero_focal_x, hero_focal_y, display_order')
     .eq('is_active', true)
     .order('display_order', { ascending: true, nullsFirst: false })
   if (error) throw error
@@ -57,12 +57,12 @@ export async function fetchVenue(slug: string): Promise<VenueDetail> {
       id, slug, name_en, name_ar, description_en, description_ar, price_band, area_id,
       phone, whatsapp_phone, website_url, address_en,
       areas(name_en, slug),
-      venue_media(storage_path, media_type, is_cover, display_order),
+      venue_media(storage_path, media_type, is_cover, display_order, focal_x, focal_y),
       venue_hours(day_of_week, opens_at, closes_at, closes_next_day),
       venue_spaces(
         id, venue_id, name_en, name_ar, description_en, space_type,
         capacity, min_party, max_party, is_active, display_order,
-        space_media(storage_path, is_cover)
+        space_media(storage_path, is_cover, focal_x, focal_y)
       )
     `,
     )
@@ -425,34 +425,75 @@ export async function fetchMyReviewFor(bookingId: string): Promise<Review | null
 
 /* ---- waitlist (BOOK-14) ---- */
 
+/**
+ * join_waitlist() is the correct path — it validates what an INSERT cannot and
+ * is idempotent, so a double tap returns the existing entry rather than a
+ * second place in the queue.
+ *
+ * The direct INSERT is kept only as a fallback for a database without the RPC,
+ * and it now sends exactly five columns: the grant was narrowed server-side to
+ * withhold status, offered_at and claim_expires_at, because a client that could
+ * set those could self-offer and then claim the offer it had just written.
+ * Sending any of them raises 42501.
+ */
 export async function joinWaitlist(
   venueId: string,
   spaceId: string | null,
   desiredSlotStart: string,
   partySize: number,
-) {
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc('join_waitlist', {
+    p_venue_id: venueId,
+    p_space_id: spaceId,
+    p_desired_slot_start: desiredSlotStart,
+    p_party_size: partySize,
+  })
+  if (!error) return (data as string) ?? null
+  if (!missing(error)) throw error
+
   const { data: me } = await supabase.auth.getUser()
   if (!me.user) throw new Error('Sign in first')
-  const { error } = await supabase.from('waitlist_entries').insert({
+  const { error: insErr } = await supabase.from('waitlist_entries').insert({
     venue_id: venueId,
     space_id: spaceId,
     desired_slot_start: desiredSlotStart,
     party_size: partySize,
     guest_id: me.user.id,
   })
+  if (insErr) throw insErr
+  return null
+}
+
+/** Claim an offered table. Acquires a hold and creates the booking atomically. */
+export async function claimWaitlistOffer(entryId: string): Promise<string> {
+  const { data, error } = await supabase.rpc('claim_waitlist_offer', {
+    p_entry_id: entryId,
+  })
   if (error) throw error
+  return data as string
+}
+
+export async function leaveWaitlist(entryId: string) {
+  const { error } = await supabase
+    .from('waitlist_entries')
+    .update({ status: 'cancelled' })
+    .eq('id', entryId)
+  if (error && !missing(error)) throw error
 }
 
 export async function fetchMyWaitlist(): Promise<WaitlistEntry[]> {
   const { data, error } = await supabase
     .from('waitlist_entries')
-    .select('id, venue_id, space_id, desired_slot_start, party_size, status')
+    .select(
+      'id, venue_id, space_id, desired_slot_start, party_size, status, claim_expires_at, venues(name_en, slug)',
+    )
+    .in('status', ['waiting', 'offered'])
     .order('desired_slot_start', { ascending: true })
   if (error) {
     if (missing(error)) return []
     throw error
   }
-  return (data ?? []) as WaitlistEntry[]
+  return (data ?? []) as unknown as WaitlistEntry[]
 }
 
 /* ---- map (DISC-05) ---- */
@@ -535,4 +576,201 @@ export async function fetchVenuesFiltered(f: VenueFilters): Promise<VenueSummary
     rows = rows.filter((v) => ok.has(v.id))
   }
   return rows
+}
+
+/* ============================================================================
+ * Final slice — in-app notifications, priority access, collections, trending
+ * search, guest list RSVP, concierge extras, feature flags.
+ * Every one degrades to an empty result if its migration is absent.
+ * ========================================================================= */
+
+export interface Notification {
+  id: string
+  template_key: string
+  params: Record<string, unknown> | null
+  booking_id: string | null
+  read_at: string | null
+  created_at: string
+  notification_templates?: {
+    title_en: string
+    title_ar: string | null
+    body_en: string
+    body_ar: string | null
+  } | null
+}
+
+export async function fetchNotifications(): Promise<Notification[]> {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select(
+      'id, template_key, params, booking_id, read_at, created_at, notification_templates(title_en, title_ar, body_en, body_ar)',
+    )
+    .order('created_at', { ascending: false })
+    .limit(60)
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as unknown as Notification[]
+}
+
+export async function markNotificationRead(id: string) {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error && !missing(error)) throw error
+}
+
+export async function markAllNotificationsRead() {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .is('read_at', null)
+  if (error && !missing(error)) throw error
+}
+
+/** Admin-granted recognition. Never purchasable, never a badge to earn. */
+export async function fetchPriorityStatus(): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('priority_flags')
+    .select('user_id')
+    .is('revoked_at', null)
+    .maybeSingle()
+  if (error) return false
+  return !!data
+}
+
+/** Feature flags, so the client can hide what the platform has not enabled. */
+export async function fetchFeatureFlags(): Promise<Record<string, boolean>> {
+  const { data, error } = await supabase.rpc('get_public_config')
+  if (error) return {}
+  const cfg = (data ?? {}) as Record<string, unknown>
+  const flags = cfg.feature_flags
+  if (flags && typeof flags === 'object') return flags as Record<string, boolean>
+  return {}
+}
+
+export interface Collection {
+  id: string
+  slug: string
+  title_en: string
+  title_ar: string | null
+  subtitle_en: string | null
+  cover_path: string | null
+}
+
+export async function fetchCollections(): Promise<Collection[]> {
+  const { data, error } = await supabase
+    .from('collections')
+    .select('id, slug, title_en, title_ar, subtitle_en, cover_path')
+    .eq('is_published', true)
+    .order('display_order', { ascending: true, nullsFirst: false })
+    .limit(12)
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as Collection[]
+}
+
+export async function fetchCollectionVenues(slug: string): Promise<VenueSummary[]> {
+  const { data: col } = await supabase
+    .from('collections')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle()
+  if (!col) return []
+  const { data: items } = await supabase
+    .from('collection_items')
+    .select('venue_id')
+    .eq('collection_id', (col as { id: string }).id)
+  const ids = (items ?? []).map((r: { venue_id: string }) => r.venue_id)
+  if (!ids.length) return []
+  const { data, error } = await supabase
+    .from('venues')
+    .select(VENUE_CARD)
+    .eq('status', 'published')
+    .in('id', ids)
+  if (error) throw error
+  return (data ?? []) as unknown as VenueSummary[]
+}
+
+export async function fetchTrendingTerms(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('trending_terms')
+    .select('term')
+    .eq('is_active', true)
+    .order('display_order', { ascending: true, nullsFirst: false })
+    .limit(8)
+  if (error) return []
+  return (data ?? []).map((r: { term: string }) => r.term)
+}
+
+/* ---- guest list RSVP (BOOK-20) ---- */
+
+export interface BookingGuest {
+  id: string
+  display_name: string | null
+  rsvp_status: string
+  invite_token: string
+}
+
+export async function fetchBookingGuests(bookingId: string): Promise<BookingGuest[]> {
+  const { data, error } = await supabase
+    .from('booking_guests')
+    .select('id, display_name, rsvp_status, invite_token')
+    .eq('booking_id', bookingId)
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as BookingGuest[]
+}
+
+export async function inviteGuest(bookingId: string, displayName: string) {
+  const { error } = await supabase
+    .from('booking_guests')
+    .insert({ booking_id: bookingId, display_name: displayName })
+  if (error) throw error
+}
+
+/** Only rsvp_status, responded_at and display_name are writable — see rule 11. */
+export async function respondToInvite(entryId: string, accept: boolean) {
+  const { error } = await supabase
+    .from('booking_guests')
+    .update({
+      rsvp_status: accept ? 'accepted' : 'declined',
+      responded_at: new Date().toISOString(),
+    })
+    .eq('id', entryId)
+  if (error) throw error
+}
+
+/* ---- concierge extras (BOOK-21) ---- */
+
+export interface BookingExtra {
+  id: string
+  extra_type: string
+  note: string | null
+  status: string
+}
+
+export async function fetchBookingExtras(bookingId: string): Promise<BookingExtra[]> {
+  const { data, error } = await supabase
+    .from('booking_extras')
+    .select('id, extra_type, note, status')
+    .eq('booking_id', bookingId)
+  if (error) {
+    if (missing(error)) return []
+    throw error
+  }
+  return (data ?? []) as BookingExtra[]
+}
+
+export async function requestExtra(bookingId: string, extraType: string, note: string) {
+  const { error } = await supabase
+    .from('booking_extras')
+    .insert({ booking_id: bookingId, extra_type: extraType, note: note || null })
+  if (error) throw error
 }

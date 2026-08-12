@@ -5,7 +5,7 @@ import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
 import { fetchAreas } from '../data/queries'
-import { mediaUrl } from '../lib/supabase'
+import { mediaUrl, focalStyle, W } from '../lib/media'
 
 export function Places() {
   const areas = useAsync(fetchAreas, [])
@@ -21,12 +21,13 @@ export function Places() {
       <div className="grid grid-cols-2 gap-3 px-5 pt-4">
         {areas.data?.map((a) => (
           <Link key={a.id} to={`/area/${a.slug}`} className="relative h-[150px] bg-card2">
-            {mediaUrl(a.hero_media_url) && (
+            {mediaUrl(a.hero_media_url, { width: W.tile, height: 450 }, 'area') && (
               <img
-                src={mediaUrl(a.hero_media_url)!}
+                src={mediaUrl(a.hero_media_url, { width: W.tile, height: 450 }, 'area')!}
                 alt=""
                 loading="lazy"
                 className="h-full w-full object-cover"
+                style={focalStyle(a.hero_focal_x, a.hero_focal_y)}
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />

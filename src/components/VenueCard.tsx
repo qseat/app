@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
-import { mediaUrl } from '../lib/supabase'
+import { mediaUrl, focalStyle, W } from '../lib/media'
 import type { VenueSummary } from '../data/types'
 import { Meridian } from './Meridian'
 import { FavouriteButton } from './FavouriteButton'
 
-function cover(v: VenueSummary) {
+function coverMedia(v: VenueSummary) {
   const media = (v.venue_media ?? []).filter((m) => m.media_type === 'photo')
-  const pick = media.find((m) => m.is_cover) ?? media[0]
-  return mediaUrl(pick?.storage_path)
+  return media.find((m) => m.is_cover) ?? media[0] ?? null
 }
 
 const band = (n: number | null) => (n ? '·'.repeat(0) + '$'.repeat(n) : '')
@@ -23,11 +22,20 @@ export function VenueRow({
   rating?: number
   note?: string
 }) {
-  const img = cover(venue)
+  const m = coverMedia(venue)
+  const img = mediaUrl(m?.storage_path, { width: W.row, height: 400 })
   return (
     <div className="flex gap-4 border-b border-hair2 py-4">
       <Link to={`/venue/${venue.slug}`} className="h-24 w-[76px] flex-none bg-card2">
-        {img && <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />}
+        {img && (
+          <img
+            src={img}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover"
+            style={focalStyle(m?.focal_x, m?.focal_y)}
+          />
+        )}
       </Link>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
@@ -53,11 +61,20 @@ export function VenueRow({
 }
 
 export function VenueTile({ venue }: { venue: VenueSummary }) {
-  const img = cover(venue)
+  const m = coverMedia(venue)
+  const img = mediaUrl(m?.storage_path, { width: W.tile, height: 570 })
   return (
     <Link to={`/venue/${venue.slug}`} className="w-[150px] flex-none">
       <div className="relative h-[190px] bg-card2">
-        {img && <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />}
+        {img && (
+          <img
+            src={img}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover"
+            style={focalStyle(m?.focal_x, m?.focal_y)}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
         <div className="absolute inset-x-3 bottom-3">
           <p className="font-display text-[17px] leading-tight text-white">{venue.name_en}</p>

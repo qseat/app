@@ -4,7 +4,8 @@ import { Screen } from '../components/Screen'
 import { BottomNav } from '../components/BottomNav'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
-import { fetchProfile, saveProfile } from '../data/queries'
+import { fetchPriorityStatus, fetchProfile, saveProfile } from '../data/queries'
+import { deleteMyAccount } from '../lib/deletion'
 import { useAuth } from '../auth/AuthProvider'
 import { useI18n } from '../lib/i18n'
 
@@ -23,6 +24,13 @@ export function Profile() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [saved, setSaved] = useState(false)
+  const priority = useAsync(
+    () => (user ? fetchPriorityStatus() : Promise.resolve(false)),
+    [user?.id],
+  )
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteNote, setDeleteNote] = useState<string | null>(null)
   const [theme, setTheme] = useState(
     () => document.documentElement.dataset.theme ?? 'nocturne',
   )
@@ -76,6 +84,9 @@ export function Profile() {
           <div className="min-w-0">
             <p className="truncate font-display text-2xl text-fg">{name || 'Guest'}</p>
             <p className="smallcaps truncate text-[9px] text-muted">{session.user.email}</p>
+            {priority.data && (
+              <p className="smallcaps mt-1 text-[8.5px] text-goldt">Priority access</p>
+            )}
           </div>
         </div>
 
@@ -106,9 +117,21 @@ export function Profile() {
 
         <Link
           to="/saved"
-          className="mt-9 flex items-center justify-between border-y border-hair2 py-4 text-[13.5px] text-fg"
+          className="mt-9 flex items-center justify-between border-t border-hair2 py-4 text-[13.5px] text-fg"
         >
           {t('favourites')} <span className="text-muted">›</span>
+        </Link>
+        <Link
+          to="/waitlist"
+          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+        >
+          {t('waitlisted')} <span className="text-muted">›</span>
+        </Link>
+        <Link
+          to="/bookings"
+          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+        >
+          {t('upcoming')} <span className="text-muted">›</span>
         </Link>
 
         <p className="eyebrow pb-3 pt-9">{t('language')}</p>
@@ -160,6 +183,55 @@ export function Profile() {
         >
           Support <span className="text-muted">›</span>
         </a>
+
+        <button
+          onClick={() => setConfirmDelete(true)}
+          className="flex w-full items-center justify-between border-b border-hair2 py-4 text-left text-[13.5px]"
+          style={{ color: 'var(--burg)' }}
+        >
+          Delete my account <span className="text-muted">›</span>
+        </button>
+
+        {confirmDelete && (
+          <div className="mt-5 border p-5" style={{ borderColor: 'var(--burg)' }}>
+            <p className="font-display text-[19px] text-fg">Delete your account?</p>
+            <p className="mt-3 text-[12px] leading-relaxed text-muted">
+              Your name, contact details, saved places, lists and reviews are erased and cannot be
+              recovered. Venues keep their own record of covers they served, without your details
+              attached — that is their trading history, not your data.
+            </p>
+            {deleteNote && (
+              <p className="mt-3 text-[12px] leading-relaxed text-goldt">{deleteNote}</p>
+            )}
+            <div className="mt-5 flex gap-3">
+              <button
+                className="btn flex-1"
+                style={{ background: 'var(--burg)', color: '#fff' }}
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true)
+                  try {
+                    const r = await deleteMyAccount()
+                    if (!r.credentialRemoved && r.note) setDeleteNote(r.note)
+                    else window.location.href = '/'
+                  } catch (e) {
+                    setDeleteNote((e as Error).message)
+                  } finally {
+                    setDeleting(false)
+                  }
+                }}
+              >
+                {deleting ? 'Erasing' : 'Delete everything'}
+              </button>
+              <button
+                className="smallcaps flex-1 border border-hair2 py-3 text-[10px] text-muted"
+                onClick={() => setConfirmDelete(false)}
+              >
+                Keep my account
+              </button>
+            </div>
+          </div>
+        )}
 
         <button className="btn btn-ghost mt-9 w-full" onClick={signOut}>
           {t('signOut')}

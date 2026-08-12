@@ -6,7 +6,7 @@ import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
 import { fetchVenue, fetchRatings, fetchVenueReviews } from '../data/queries'
-import { mediaUrl } from '../lib/supabase'
+import { mediaUrl, focalStyle, W } from '../lib/media'
 import { useI18n, localised } from '../lib/i18n'
 import { FavouriteButton } from '../components/FavouriteButton'
 import { dateOf } from '../lib/format'
@@ -45,7 +45,8 @@ export function Venue() {
   const photos = (venue.venue_media ?? [])
     .filter((m) => m.media_type === 'photo')
     .sort((a, b) => (a.is_cover ? -1 : 0) - (b.is_cover ? -1 : 0))
-  const img = mediaUrl(photos[shot]?.storage_path)
+  const shotMedia = photos[shot]
+  const img = mediaUrl(shotMedia?.storage_path, { width: W.gallery, height: 1080 })
   const spaces = (venue.venue_spaces ?? [])
     .filter((s) => s.is_active !== false)
     .sort((a, b) => (a.display_order ?? 99) - (b.display_order ?? 99))
@@ -55,7 +56,14 @@ export function Venue() {
     <Screen nav={<BottomNav />}>
       <div className="relative h-[360px]">
         <div className="absolute inset-0 bg-card2">
-          {img && <img src={img} alt="" className="h-full w-full object-cover" />}
+          {img && (
+            <img
+              src={img}
+              alt=""
+              className="h-full w-full object-cover"
+              style={focalStyle(shotMedia?.focal_x, shotMedia?.focal_y)}
+            />
+          )}
         </div>
         <div className="scrim absolute inset-0" />
         <div className="absolute left-5 top-[max(52px,env(safe-area-inset-top))] z-10">
@@ -217,13 +225,20 @@ export function Venue() {
 }
 
 function SpaceCard({ space, venueSlug }: { space: VenueSpace; venueSlug: string }) {
-  const img = mediaUrl(
-    ((space.space_media ?? []).find((m) => m.is_cover) ?? space.space_media?.[0])?.storage_path,
-  )
+  const sm = (space.space_media ?? []).find((m) => m.is_cover) ?? space.space_media?.[0]
+  const img = mediaUrl(sm?.storage_path, { width: W.tile, height: 260 })
   return (
     <Link to={`/book/${venueSlug}?space=${space.id}`} className="w-[132px] flex-none">
       <div className="h-[86px] bg-card2">
-        {img && <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />}
+        {img && (
+          <img
+            src={img}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover"
+            style={focalStyle(sm?.focal_x, sm?.focal_y)}
+          />
+        )}
       </div>
       <p className="mt-2 font-display text-[13px] text-fg">{space.name_en}</p>
       <p className="smallcaps text-[8.5px] text-muted">
