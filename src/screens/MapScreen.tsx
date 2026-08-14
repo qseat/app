@@ -8,6 +8,8 @@ import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
 import { fetchVenuePoints, fetchVenues } from '../data/queries'
 import { useI18n } from '../lib/i18n'
+import { mediaUrl, focalStyle, W } from '../lib/media'
+import type { VenueSummary } from '../data/types'
 
 const DOHA: L.LatLngTuple = [25.2854, 51.531]
 
@@ -20,16 +22,19 @@ export function MapScreen() {
   const { t } = useI18n()
   const host = useRef<HTMLDivElement | null>(null)
   const map = useRef<L.Map | null>(null)
-  const [selected, setSelected] = useState<{ slug: string; name: string } | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const points = useAsync(fetchVenuePoints, [])
   const venues = useAsync(() => fetchVenues({ limit: 60 }), [])
 
+  // The points RPC returns coordinates only, so the card's photo and area come
+  // from the venue list we already have.
   const byId = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const v of venues.data ?? []) m.set(v.id, v.areas?.name_en ?? '')
+    const m = new Map<string, VenueSummary>()
+    for (const v of venues.data ?? []) m.set(v.id, v)
     return m
   }, [venues.data])
+  const selected = selectedId ? (byId.get(selectedId) ?? null) : null
 
   useEffect(() => {
     if (!host.current || map.current) return
@@ -63,7 +68,7 @@ export function MapScreen() {
       })
       L.marker([p.lat, p.lng], { icon })
         .addTo(layer)
-        .on('click', () => setSelected({ slug: p.slug, name: p.name_en }))
+        .on('click', () => setSelectedId(p.id))
     }
     if (bounds.length) map.current.fitBounds(L.latLngBounds(bounds).pad(0.2))
     return () => {
@@ -86,16 +91,39 @@ export function MapScreen() {
             />
           </div>
         )}
-        {selected && (
-          <Link
-            to={`/venue/${selected.slug}`}
-            className="absolute inset-x-4 bottom-4 z-[500] border border-hair bg-bg px-4 py-3.5"
-          >
-            <p className="font-display text-[19px] text-fg">{selected.name}</p>
-            <p className="smallcaps mt-1 text-[9px] text-goldt">Open this place ›</p>
-          </Link>
-        )}
+        {selected && <MapCard venue={selected} onClose={() => setSelectedId(null)} />}
       </div>
     </Screen>
+  )
+}
+
+function MapCard({ venue, onClose }: { venue: VenueSummary; onClose: () => void }) {
+  const media = (venue.venue_media ?? []).filter((m) => m.media_type === 'photo')
+  const m = media.find((x) => x.is_cover) ?? media[0]
+  const img = mediaUrl(m?.storage_path, { width: W.thumb, height: 200 })
+  return (
+    <div className="fade-up absolute inset-x-4 bottom-4 z-[500] flex gap-3 border border-hair bg-bg p-3">
+      <Link to={`/venue/${venue.slug}`} className="h-[74px] w-[74px] flex-none bg-card2">
+        {img && (
+          <img
+            src={img}
+            alt=""
+            className="h-full w-full object-cover"
+            style={focalStyle(m?.focal_x, m?.focal_y)}
+          />
+        )}
+      </Link>
+      <Link to={`/venue/${venue.slug}`} className="min-w-0 flex-1">
+        <p className="truncate font-display text-[19px] leading-tight text-fg">{venue.name_en}</p>
+        <p className="smallcaps mt-1 text-[9px] text-muted">
+          {venue.areas?.name_en}
+          {venue.price_band ? ` · ${'$'.repeat(venue.price_band)}` : ''}
+        </p>
+        <p className="smallcaps mt-2 text-[9px] text-goldt">Open this place ›</p>
+      </Link>
+      <button onClick={onClose} aria-label="Close" className="self-start px-1 text-lg text-muted">
+        ×
+      </button>
+    </div>
   )
 }

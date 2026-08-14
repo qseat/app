@@ -24,6 +24,7 @@ import { useI18n, localised } from '../lib/i18n'
 import { FilterSheet } from '../components/FilterSheet'
 import { FavouriteButton } from '../components/FavouriteButton'
 import type { AvailabilitySummary, VenueSummary } from '../data/types'
+import { Wordmark } from '../components/Logo'
 
 export function Home() {
   const { t, lang } = useI18n()
@@ -59,9 +60,9 @@ export function Home() {
   return (
     <Screen nav={<BottomNav />}>
       <div className="sticky top-0 z-40 bg-bg/90 px-5 pb-4 pt-[max(52px,env(safe-area-inset-top))] backdrop-blur-xl">
-        <p className="mb-4 text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
-          QSeat
-        </p>
+        <div className="mb-4 flex justify-center">
+          <Wordmark size={21} />
+        </div>
         <div className="flex items-center gap-3 border border-hair bg-card px-4">
           <svg viewBox="0 0 16 16" className="h-4 w-4 flex-none fill-none stroke-muted stroke-[1.4]">
             <circle cx="6.6" cy="6.6" r="4.9" />

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { Wordmark } from '../components/Logo'
 
 type Mode = 'signin' | 'signup'
 
@@ -46,9 +47,9 @@ export function SignIn() {
 
   return (
     <div className="mx-auto flex h-full max-w-[520px] flex-col justify-center bg-bg px-7 pb-10 pt-[max(40px,env(safe-area-inset-top))]">
-      <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
-        QSeat
-      </p>
+      <div className="flex justify-center">
+        <Wordmark size={24} />
+      </div>
       <h1 className="mt-9 font-display text-[34px] leading-tight text-fg">
         {mode === 'signin' ? 'Welcome back' : 'Create an account'}
       </h1>

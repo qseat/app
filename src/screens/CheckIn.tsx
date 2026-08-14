@@ -7,6 +7,7 @@ import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
 import { fetchMyBookings, issueCheckinToken } from '../data/queries'
+import { Wordmark } from '../components/Logo'
 import { dateOf, timeOf } from '../lib/format'
 import { useAuth } from '../auth/AuthProvider'
 
@@ -45,14 +46,23 @@ export function CheckIn() {
       </Screen>
     )
 
+  // An error and an empty result must not render the same screen — that is how
+  // a broken query reads as "nothing booked" and hides itself.
+  if (bookings.error)
+    return (
+      <Screen nav={<BottomNav />}>
+        <Header />
+        <Empty title="Couldn't load your bookings" note={bookings.error} />
+      </Screen>
+    )
+
+  // No live booking: show the permanent profile code (CHK-04). Staff scan it to
+  // look a guest up or seat a walk-in, so this screen is never a dead end.
   if (!active)
     return (
       <Screen nav={<BottomNav />}>
         <Header />
-        <Empty
-          title="No table to check into"
-          note="Once a booking is confirmed, your code appears here about half an hour before you're due."
-        />
+        <ProfileCard userId={session.user.id} email={session.user.email ?? ''} />
       </Screen>
     )
 
@@ -161,6 +171,50 @@ function TokenCard({ bookingId }: { bookingId: string }) {
       <p className="mx-auto mt-4 max-w-[30ch] text-[10.5px] leading-relaxed text-muted">
         Show this at the host stand. It changes every thirty seconds, so a screenshot won’t work.
       </p>
+    </div>
+  )
+}
+
+/**
+ * The guest's permanent code. Not a booking token — it identifies the person,
+ * so it does not rotate and is safe to keep on screen.
+ */
+function ProfileCard({ userId, email }: { userId: string; email: string }) {
+  const canvas = useRef<HTMLCanvasElement | null>(null)
+  const code = userId.replace(/-/g, '').slice(0, 6).toUpperCase()
+
+  useEffect(() => {
+    if (!canvas.current) return
+    QRCode.toCanvas(canvas.current, `qseat:guest:${userId}`, {
+      width: 220,
+      margin: 1,
+      color: { dark: '#0B0B0C', light: '#FFFFFF' },
+    }).catch(() => {})
+  }, [userId])
+
+  return (
+    <div className="pt-6 text-center">
+      <div className="mx-auto mb-7 flex justify-center">
+        <Wordmark size={20} />
+      </div>
+      <div className="mx-auto w-[252px] bg-white p-4">
+        <canvas ref={canvas} className="mx-auto block h-[220px] w-[220px]" />
+      </div>
+      <p className="mt-6 font-ui text-[19px] tracking-[0.4em] text-goldt">
+        {code.slice(0, 3)} {code.slice(3)}
+      </p>
+      <p className="smallcaps mt-3 text-[9px] text-muted">{email}</p>
+      <p className="mx-auto mt-6 max-w-[30ch] text-[11.5px] leading-relaxed text-muted">
+        This is your QSeat code. Show it at the door for a walk-in, or when the host wants to find
+        you on the list.
+      </p>
+      <p className="mx-auto mt-4 max-w-[30ch] text-[11.5px] leading-relaxed text-muted">
+        When you have a confirmed table, a booking code replaces this about half an hour before
+        you're due.
+      </p>
+      <Link to="/" className="btn btn-ghost mx-5 mt-8 block">
+        Find somewhere for tonight
+      </Link>
     </div>
   )
 }

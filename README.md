@@ -7,7 +7,42 @@ platform and a working product if App Store publication is delayed.
 Nocturne theme, mobile-first, capped at 520px so it stays app-like on desktop.
 Dark and light, English and Arabic with full RTL.
 
-## What changed in this version
+## Fixes in this version
+
+**The bookings/venues embed is gone.** `bookings` has no *declared* foreign key
+to `venues` — the platform schema relied on the composite FK
+`(space_id, venue_id) -> venue_spaces` proving `venue_id` transitively. Sound for
+integrity, useless to PostgREST, which resolves embeds only from declared
+relationships. So `venues(name_en, slug)` raised *"Could not find a relationship
+between 'bookings' and 'venues'"* and every screen reading bookings went blank —
+including check-in, which then reported "No table to check into" because its
+query had thrown rather than returned nothing.
+
+Venue names now come from a second query joined in memory (`attachVenues`). Two
+round trips instead of one, and it works against any version of the schema. If
+the platform later adds the FK, this can revert to an embed — but it does not
+need to.
+
+**Error states no longer masquerade as empty states.** Check-in distinguished
+neither, which is precisely how the bug hid. Any screen that could not ask now
+says so.
+
+**Profile QR for walk-ins** (`CHK-04`). With no live booking the check-in tab
+shows the guest's permanent code rather than a dead end — staff scan it to look
+someone up or seat a walk-in. It does not rotate, because it identifies a person
+rather than authorising a table.
+
+**The map card carries a photograph**, the area and the price band, not just a
+name.
+
+**The Hairline Q mark** is now on the splash, sign-in and home headers. Two
+primitives crossing once; the tail must cross the ring rather than tuck inside
+it. `Mark` thickens its strokes below 44px, because a 1px-logic mark disappears
+at small sizes — the small variant is a second drawing, not a scale.
+
+**The check-in tab has no label**, just the disc.
+
+## What changed in the version before
 
 Three contract changes from the platform repo, plus the remaining features.
 

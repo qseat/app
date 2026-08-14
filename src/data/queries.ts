@@ -139,13 +139,36 @@ export async function transitionBooking(
   if (error) throw error
 }
 
+/*
+ * bookings has NO declared foreign key to venues — 0006 relied on the composite
+ * FK (space_id, venue_id) -> venue_spaces proving venue_id transitively. That is
+ * sound for integrity and useless to PostgREST, which resolves embeds only from
+ * declared relationships, so `venues(...)` here raises
+ *   "Could not find a relationship between 'bookings' and 'venues'".
+ *
+ * Rather than depend on a migration landing, we fetch venue names in a second
+ * query and join in memory. Two round trips instead of one, and it works
+ * against any version of the schema.
+ */
 const BOOKING_SELECT = `
   id, venue_id, space_id, status, slot_start, slot_end, party_size,
   occasion, special_requests, assigned_space_label,
   counter_proposed_slot_start, sla_expires_at, grace_expires_at,
-  venues(name_en, slug),
   ${SPACE_EMBED}
 `
+
+async function attachVenues<T extends { venue_id: string }>(
+  rows: T[],
+): Promise<(T & { venues: { name_en: string; slug: string } | null })[]> {
+  if (!rows.length) return []
+  const ids = Array.from(new Set(rows.map((r) => r.venue_id)))
+  const { data } = await supabase.from('venues').select('id, name_en, slug').in('id', ids)
+  const byId = new Map<string, { name_en: string; slug: string }>()
+  for (const v of (data ?? []) as { id: string; name_en: string; slug: string }[]) {
+    byId.set(v.id, { name_en: v.name_en, slug: v.slug })
+  }
+  return rows.map((r) => ({ ...r, venues: byId.get(r.venue_id) ?? null }))
+}
 
 export async function fetchMyBookings(): Promise<Booking[]> {
   const { data, error } = await supabase
@@ -155,7 +178,7 @@ export async function fetchMyBookings(): Promise<Booking[]> {
     .order('slot_start', { ascending: false })
     .limit(80)
   if (error) throw error
-  return (data ?? []) as unknown as Booking[]
+  return (await attachVenues((data ?? []) as never[])) as unknown as Booking[]
 }
 
 export async function fetchBooking(id: string): Promise<Booking> {
@@ -165,7 +188,8 @@ export async function fetchBooking(id: string): Promise<Booking> {
     .eq('id', id)
     .single()
   if (error) throw error
-  return data as unknown as Booking
+  const [row] = await attachVenues([data] as never[])
+  return row as unknown as Booking
 }
 
 export async function fetchAmenities() {
@@ -485,7 +509,7 @@ export async function fetchMyWaitlist(): Promise<WaitlistEntry[]> {
   const { data, error } = await supabase
     .from('waitlist_entries')
     .select(
-      'id, venue_id, space_id, desired_slot_start, party_size, status, claim_expires_at, venues(name_en, slug)',
+      'id, venue_id, space_id, desired_slot_start, party_size, status, claim_expires_at',
     )
     .in('status', ['waiting', 'offered'])
     .order('desired_slot_start', { ascending: true })
@@ -493,7 +517,7 @@ export async function fetchMyWaitlist(): Promise<WaitlistEntry[]> {
     if (missing(error)) return []
     throw error
   }
-  return (data ?? []) as unknown as WaitlistEntry[]
+  return (await attachVenues((data ?? []) as never[])) as unknown as WaitlistEntry[]
 }
 
 /* ---- map (DISC-05) ---- */

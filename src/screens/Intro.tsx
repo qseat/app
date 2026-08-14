@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Wordmark } from '../components/Logo'
 
 const STEPS = [
   {
@@ -27,9 +28,9 @@ export function Intro() {
 
   return (
     <div className="mx-auto flex h-full max-w-[520px] flex-col justify-between bg-bg px-7 pb-[max(28px,env(safe-area-inset-bottom))] pt-[max(72px,env(safe-area-inset-top))]">
-      <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
-        QSeat
-      </p>
+      <div className="flex justify-center">
+        <Wordmark size={22} />
+      </div>
 
       <div className="fade-up" key={step.n}>
         <p className="font-display text-[64px] leading-none text-goldt">{step.n}</p>

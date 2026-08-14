@@ -27,7 +27,7 @@ export function BottomNav({ unread = 0 }: { unread?: number }) {
   const tabs = [
     { to: '/', key: 'home' as const, label: t('home') },
     { to: '/places', key: 'places' as const, label: t('places') },
-    { to: '/checkin', key: 'qr' as const, label: t('checkin') },
+    { to: '/checkin', key: 'qr' as const, label: '' },
     { to: '/activity', key: 'bell' as const, label: t('alerts') },
     { to: '/me', key: 'me' as const, label: t('me') },
   ]
@@ -38,13 +38,17 @@ export function BottomNav({ unread = 0 }: { unread?: number }) {
           const active = t.to === '/' ? pathname === '/' : pathname.startsWith(t.to)
           if (t.key === 'qr')
             return (
-              <NavLink key={t.to} to={t.to} className="flex w-14 flex-col items-center gap-1">
-                <span className="grid h-[52px] w-[52px] -mb-1 place-items-center rounded-full bg-gold shadow-[0_10px_26px_-8px_rgba(200,169,97,.6)]">
+              <NavLink
+                key={t.to}
+                to={t.to}
+                aria-label="Check in"
+                className="flex w-14 flex-col items-center justify-end pb-1"
+              >
+                <span className="grid h-[54px] w-[54px] place-items-center rounded-full bg-gold shadow-[0_10px_26px_-8px_rgba(200,169,97,.6)]">
                   <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-[1.5]" stroke="#0B0B0C">
                     {Icon.qr}
                   </svg>
                 </span>
-                <em className="smallcaps not-italic text-[8.5px] text-goldt">{t.label}</em>
               </NavLink>
             )
           return (
