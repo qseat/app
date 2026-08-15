@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Screen, SectionHead, TopBar } from '../components/Screen'
 import { BottomNav } from '../components/BottomNav'
@@ -30,6 +30,13 @@ export function Venue() {
     [venueId],
   )
   const [shot, setShot] = useState(0)
+  const galleryRef = useRef<HTMLDivElement | null>(null)
+
+  function onGalleryScroll() {
+    const el = galleryRef.current
+    if (!el) return
+    setShot(Math.round(el.scrollLeft / el.clientWidth))
+  }
   const [open, setOpen] = useState<string | null>('hours')
 
   if (v.loading) return <Screen nav={<BottomNav />}><Spinner full label="Loading" /></Screen>
@@ -45,8 +52,6 @@ export function Venue() {
   const photos = (venue.venue_media ?? [])
     .filter((m) => m.media_type === 'photo')
     .sort((a, b) => (a.is_cover ? -1 : 0) - (b.is_cover ? -1 : 0))
-  const shotMedia = photos[shot]
-  const img = mediaUrl(shotMedia?.storage_path, { width: W.gallery, height: 1080 })
   const spaces = (venue.venue_spaces ?? [])
     .filter((s) => s.is_active !== false)
     .sort((a, b) => (a.display_order ?? 99) - (b.display_order ?? 99))
@@ -54,18 +59,43 @@ export function Venue() {
 
   return (
     <Screen nav={<BottomNav />}>
-      <div className="relative h-[360px]">
-        <div className="absolute inset-0 bg-surface2">
-          {img && (
-            <img
-              src={img}
-              alt=""
-              className="h-full w-full object-cover"
-              style={focalStyle(shotMedia?.focal_x, shotMedia?.focal_y)}
-            />
-          )}
+      <div className="relative h-[400px]">
+        {/* A real swipeable deck rather than dots that swap a src — the gesture
+            is what people reach for first, and tapping a 4px dot is not it. */}
+        <div
+          ref={galleryRef}
+          onScroll={onGalleryScroll}
+          className="absolute inset-0 flex overflow-x-auto overflow-y-hidden"
+          style={{
+            scrollSnapType: 'x mandatory',
+            overscrollBehaviorX: 'contain',
+            touchAction: 'pan-x',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {(photos.length ? photos : [null]).map((ph, i) => {
+            const src = mediaUrl(ph?.storage_path, { width: W.gallery, height: 1080 })
+            return (
+              <div
+                key={i}
+                className="h-full w-full flex-none bg-surface2"
+                style={{ scrollSnapAlign: 'center', scrollSnapStop: 'always' }}
+              >
+                {src && (
+                  <img
+                    src={src}
+                    alt=""
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    className="h-full w-full object-cover"
+                    style={focalStyle(ph?.focal_x, ph?.focal_y)}
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
-        <div className="scrim absolute inset-0" />
+        <div className="scrim pointer-events-none absolute inset-0" />
         <div className="absolute left-5 top-[max(52px,env(safe-area-inset-top))] z-10">
           <Link
             to=".."
@@ -81,13 +111,15 @@ export function Venue() {
           </Link>
         </div>
         {photos.length > 1 && (
-          <div className="absolute inset-x-0 bottom-[86px] z-10 flex justify-center gap-1.5">
+          <div className="pointer-events-none absolute inset-x-0 bottom-[104px] z-10 flex justify-center gap-1.5">
             {photos.map((_, i) => (
-              <button
+              <span
                 key={i}
-                onClick={() => setShot(i)}
-                aria-label={`Photo ${i + 1}`}
-                className={i === shot ? 'h-1 w-4 bg-white' : 'h-1 w-1 rounded-full bg-white/40'}
+                className="h-1 rounded-full transition-all duration-300"
+                style={{
+                  width: i === shot ? 18 : 5,
+                  background: i === shot ? '#fff' : 'rgba(255,255,255,.42)',
+                }}
               />
             ))}
           </div>
@@ -146,7 +178,7 @@ export function Venue() {
       {spaces.length > 0 && (
         <>
           <SectionHead label={t('chooseRoom')} />
-          <div className="flex gap-3 overflow-x-auto px-5 no-scrollbar">
+          <div className="rail">
             {spaces.map((s) => (
               <SpaceCard key={s.id} space={s} venueSlug={venue.slug} />
             ))}

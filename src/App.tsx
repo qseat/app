@@ -40,11 +40,12 @@ function Gate() {
   const { ready } = useAuth()
   const [held, setHeld] = useState(true)
 
-  // Hold the splash a beat past readiness — a 90ms flash of a logo is worse
-  // than no logo, and the animation needs room to finish.
+  // Hold the splash past readiness. The mark's reveal runs ~1.1s and the
+  // wordmark trails it, so cutting at readiness truncates the animation on a
+  // fast connection — which is exactly when it should look best.
   useEffect(() => {
     if (!ready) return
-    const id = setTimeout(() => setHeld(false), 620)
+    const id = setTimeout(() => setHeld(false), 1500)
     return () => clearTimeout(id)
   }, [ready])
 

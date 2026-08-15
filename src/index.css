@@ -104,12 +104,24 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Momentum and snap, so a carousel feels like a carousel rather than a div. */
+/* =============================================================================
+   Scrolling.
+
+   A horizontal rail nested inside a vertical scroller is where mobile browsers
+   get fussy: the parent claims the gesture before the child sees it. Three
+   things fix it together and none of them alone —
+     touch-action: pan-x        tells the browser this element owns X gestures
+     overscroll-behavior-x      stops a rail's end handing the scroll upward
+     min-width: 0               lets a flex child actually be narrower than its
+                                content, which is what makes overflow scroll
+   The vertical parent must NOT set overscroll-behavior-y: contain, which on
+   WebKit swallows the diagonal component of a horizontal swipe.
+   ========================================================================== */
 .scroll-y {
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  overscroll-behavior-y: contain;
 }
 .scroll-y::-webkit-scrollbar {
   display: none;
@@ -118,19 +130,55 @@ body {
 .rail {
   display: flex;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   scroll-padding-left: 20px;
-  padding: 0 20px;
+  scroll-padding-right: 20px;
+  padding: 2px 20px 4px;
 }
 .rail::-webkit-scrollbar {
   display: none;
 }
 .rail > * {
   scroll-snap-align: start;
-  flex: none;
+  flex: 0 0 auto;
+}
+
+/* A rail whose items should settle exactly, like a card deck. */
+.rail-snap {
+  scroll-snap-type: x mandatory;
+}
+
+/* Full-width paged deck — one card per view. */
+.deck {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-padding: 0 20px;
+  padding: 0 20px 4px;
+}
+.deck::-webkit-scrollbar {
+  display: none;
+}
+.deck > * {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  flex: 0 0 calc(100% - 40px);
 }
 
 /* ---- type roles ---- */

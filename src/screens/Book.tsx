@@ -129,7 +129,7 @@ export function Book() {
         </p>
 
         <Field label="Room">
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" style={{ touchAction: 'pan-x', overscrollBehaviorX: 'contain', scrollbarWidth: 'none' }}>
             {spaces.map((s) => (
               <Chip key={s.id} on={s.id === spaceId} onClick={() => setSpaceId(s.id)}>
                 {s.name_en}
@@ -149,7 +149,7 @@ export function Book() {
         </Field>
 
         <Field label="Date">
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" style={{ touchAction: 'pan-x', overscrollBehaviorX: 'contain', scrollbarWidth: 'none' }}>
             {days.map((d) => (
               <button
                 key={d.key}

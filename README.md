@@ -7,6 +7,37 @@ platform and a working product if App Store publication is delayed.
 Nocturne theme, mobile-first, capped at 520px so it stays app-like on desktop.
 Dark and light, English and Arabic with full RTL.
 
+## Scrolling fixes (v5)
+
+Rails were not sliding, which turned out to be three separate things that only
+work together:
+
+- `touch-action: pan-x` on the rail, telling the browser the element owns
+  horizontal gestures
+- `overscroll-behavior-x: contain`, so reaching the end does not hand the scroll
+  up to the page
+- **removing** `overscroll-behavior-y: contain` from the vertical parent — on
+  WebKit it swallows the diagonal component of a horizontal swipe, which is what
+  every real thumb produces
+
+Plus `min-width: 0`, without which a flex child cannot be narrower than its
+content and therefore never overflows.
+
+Three primitives now, so no screen hand-rolls one: `.rail` (free-scrolling with
+proximity snap), `.rail-snap` (settles on an item) and `.deck` (one full-width
+card per view, `scroll-snap-stop: always`).
+
+**The venue gallery is a real swipeable deck**, not dots that swap a `src`. The
+dots became indicators rather than 4px tap targets.
+
+**Check-in handles several live bookings.** A guest with lunch and dinner gets a
+swipeable deck; the previous behaviour silently picked the soonest, which is how
+someone shows the wrong code at the door.
+
+**The splash runs longer** — the mark's reveal is ~1.1s with the wordmark
+trailing it, so cutting at session-readiness truncated the animation exactly
+when the connection was fast enough for it to look good.
+
 ## Visual revision (v4)
 
 The first cut was austere on purpose — sharp corners, hairline rules, wide

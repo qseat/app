@@ -46,7 +46,7 @@ export function Sheet({
             ×
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto no-scrollbar">{children}</div>
+        <div className="scroll-y max-h-[70vh]">{children}</div>
       </div>
     </div>
   )

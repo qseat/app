@@ -8,7 +8,7 @@ import { Mark } from '../components/Logo'
 export function Splash() {
   const [lit, setLit] = useState(false)
   useEffect(() => {
-    const id = setTimeout(() => setLit(true), 90)
+    const id = setTimeout(() => setLit(true), 120)
     return () => clearTimeout(id)
   }, [])
 
@@ -16,7 +16,7 @@ export function Splash() {
     <div className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-bg">
       {/* a single warm bloom behind the mark, so the black is not flat */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-1000"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-[1400ms]"
         style={{
           background:
             'radial-gradient(circle, var(--gold-glow) 0%, transparent 62%)',
@@ -24,7 +24,7 @@ export function Splash() {
         }}
       />
       <div
-        className="relative transition-all duration-[900ms]"
+        className="relative transition-all duration-[1100ms]"
         style={{
           opacity: lit ? 1 : 0,
           transform: lit ? 'none' : 'scale(0.94)',
@@ -38,14 +38,14 @@ export function Splash() {
         style={{
           opacity: lit ? 1 : 0,
           transform: lit ? 'none' : 'translateY(8px)',
-          transitionDelay: '160ms',
+          transitionDelay: '340ms',
         }}
       >
         QSeat
       </p>
       <p
         className="absolute bottom-[max(40px,env(safe-area-inset-bottom))] text-[10px] tracking-[0.24em] text-faint transition-opacity duration-700"
-        style={{ opacity: lit ? 1 : 0, transitionDelay: '420ms' }}
+        style={{ opacity: lit ? 1 : 0, transitionDelay: '780ms' }}
       >
         RESERVE IN QATAR
       </p>

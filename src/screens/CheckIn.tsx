@@ -23,10 +23,16 @@ export function CheckIn() {
     [session?.user.id],
   )
 
-  const active = useMemo(() => {
-    const rows = (bookings.data ?? []).filter((b) => SCANNABLE.includes(b.status))
-    return rows.sort((a, b) => +new Date(a.slot_start) - +new Date(b.slot_start))[0] ?? null
-  }, [bookings.data])
+  const live = useMemo(
+    () =>
+      (bookings.data ?? [])
+        .filter((b) => SCANNABLE.includes(b.status))
+        .sort((a, b) => +new Date(a.slot_start) - +new Date(b.slot_start)),
+    [bookings.data],
+  )
+  const [index, setIndex] = useState(0)
+  const deck = useRef<HTMLDivElement | null>(null)
+  const active = live[Math.min(index, Math.max(0, live.length - 1))] ?? null
 
   if (!session)
     return (
@@ -62,9 +68,56 @@ export function CheckIn() {
       </Shell>
     )
 
+  // More than one live booking: a swipeable deck rather than a hidden "soonest".
+  // Someone with a lunch and a dinner needs the other one to be reachable, and
+  // a silently-chosen booking is how a guest shows the wrong code at the door.
   return (
     <Shell>
-      <BookingCode booking={active} />
+      {live.length > 1 && (
+        <>
+          <div
+            ref={deck}
+            onScroll={() => {
+              const el = deck.current
+              if (el) setIndex(Math.round(el.scrollLeft / el.clientWidth))
+            }}
+            className="deck pb-3"
+          >
+            {live.map((b, i) => (
+              <button
+                key={b.id}
+                onClick={() => {
+                  setIndex(i)
+                  deck.current?.scrollTo({ left: i * (deck.current?.clientWidth ?? 0), behavior: 'smooth' })
+                }}
+                className="card card-lg px-5 py-4 text-left transition-opacity"
+                style={{ opacity: i === index ? 1 : 0.5 }}
+              >
+                <p className="t-eyebrow text-[9px]">
+                  {i === index ? 'Showing this code' : 'Tap to show'}
+                </p>
+                <p className="t-title mt-2 truncate text-[21px] text-fg">{b.venues?.name_en}</p>
+                <p className="t-meta mt-1">
+                  {dateOf(b.slot_start)} · {timeOf(b.slot_start)} · {b.party_size} guests
+                </p>
+              </button>
+            ))}
+          </div>
+          <div className="mb-2 flex justify-center gap-1.5">
+            {live.map((_, i) => (
+              <span
+                key={i}
+                className="h-1 rounded-full transition-all duration-300"
+                style={{
+                  width: i === index ? 16 : 5,
+                  background: i === index ? 'var(--gold)' : 'var(--surface3)',
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+      <BookingCode key={active.id} booking={active} showSummary={live.length === 1} />
     </Shell>
   )
 }
@@ -95,7 +148,7 @@ function Shell({ children }: { children: React.ReactNode }) {
  * to when it opens. A genuine failure inside the window still surfaces, because
  * that one the guest needs to know about.
  */
-function BookingCode({ booking }: { booking: Booking }) {
+function BookingCode({ booking, showSummary = true }: { booking: Booking; showSummary?: boolean }) {
   const canvas = useRef<HTMLCanvasElement | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [code, setCode] = useState<string | null>(null)
@@ -154,10 +207,10 @@ function BookingCode({ booking }: { booking: Booking }) {
 
   return (
     <div className="px-5">
-      <BookingSummary booking={booking} />
+      {showSummary && <BookingSummary booking={booking} />}
 
       {isOpen && token && (
-        <div className="mt-6 rise-2">
+        <div className={showSummary ? 'mt-6 rise-2' : 'rise-2'}>
           <div className="mx-auto w-[300px] rounded-xl bg-white p-5 shadow-lg">
             <canvas ref={canvas} className="mx-auto block h-[260px] w-[260px]" />
           </div>

@@ -121,7 +121,7 @@ export function Home() {
       ) : (
         <>
           {trending.data && trending.data.length > 0 && (
-            <div className="rail pt-4">
+            <div className="rail rail-snap pt-4">
               {trending.data.map((x) => (
                 <button key={x} onClick={() => setTerm(x)} className="chip">
                   {x}
