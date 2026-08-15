@@ -77,7 +77,7 @@ export function Notifications() {
     <Screen nav={<BottomNav unread={unread} />}>
       <Header />
       {unread > 0 && (
-        <button className="smallcaps px-5 pb-2 pt-1 text-[9px] text-goldt" onClick={readAll}>
+        <button className="t-meta px-5 pb-2 pt-1 text-[9px] text-goldt" onClick={readAll}>
           Mark all read
         </button>
       )}
@@ -108,7 +108,7 @@ export function Notifications() {
               {filled && (
                 <p className="mt-1 text-[11.5px] leading-relaxed text-muted">{filled}</p>
               )}
-              <p className="smallcaps pt-2 text-[8.5px] text-muted">
+              <p className="t-meta pt-2 text-[8.5px] text-muted">
                 {dateOf(n.created_at)} · {timeOf(n.created_at)}
               </p>
             </div>
@@ -119,12 +119,12 @@ export function Notifications() {
             key={n.id}
             to={`/booking/${n.booking_id}`}
             onClick={() => !n.read_at && markNotificationRead(n.id)}
-            className="flex gap-3.5 border-b border-hair2 px-5 py-4"
+            className="flex gap-3.5 border-b border-hair px-5 py-4"
           >
             {inner}
           </Link>
         ) : (
-          <div key={n.id} className="flex gap-3.5 border-b border-hair2 px-5 py-4">
+          <div key={n.id} className="flex gap-3.5 border-b border-hair px-5 py-4">
             {inner}
           </div>
         )
@@ -146,7 +146,7 @@ function fill(body: string, params: Record<string, unknown> | null): string {
 function Header() {
   return (
     <div className="px-5 pb-2 pt-[max(52px,env(safe-area-inset-top))]">
-      <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
+      <p className="text-center t-title text-[15px] uppercase tracking-[0.5em] text-goldt">
         Alerts
       </p>
     </div>

@@ -23,7 +23,7 @@ export function AreaDetail() {
         <p className="px-5 pt-5 text-[13px] leading-relaxed text-fg2">{area.description_en}</p>
       )}
       <div className="flex items-baseline justify-between px-5 pb-1 pt-6">
-        <p className="eyebrow">{venues.data?.length ?? 0} places</p>
+        <p className="t-eyebrow">{venues.data?.length ?? 0} places</p>
       </div>
       {(areas.loading || venues.loading) && <Spinner />}
       {venues.data?.length === 0 && !venues.loading && (

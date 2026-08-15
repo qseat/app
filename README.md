@@ -7,7 +7,39 @@ platform and a working product if App Store publication is delayed.
 Nocturne theme, mobile-first, capped at 520px so it stays app-like on desktop.
 Dark and light, English and Arabic with full RTL.
 
-## Fixes in this version
+## Visual revision (v4)
+
+The first cut was austere on purpose — sharp corners, hairline rules, wide
+tracked small caps. Austere reads as expensive in print and as *unfinished* on a
+phone, because a screen has no paper stock to carry it. The palette is unchanged;
+everything around it moved.
+
+- **Radii and elevation.** Four radius steps, three surface steps. Cards lift
+  rather than outline — the hairline borders that separated everything are now
+  quiet, and shadow does the work.
+- **Rails with scroll snap.** Horizontal carousels for areas, collections and
+  free-tonight venues, with momentum and snap alignment rather than a `div` that
+  happens to scroll.
+- **A real splash.** The mark blooms in against a warm radial, held a beat past
+  session readiness — a 90ms flash of a logo is worse than no logo.
+- **Softer icons** at 1.4 stroke with rounded joins, replacing the butt-capped
+  1.3 set that read as technical.
+- **Skeletons instead of spinners**, so a slow screen keeps its shape.
+- **Image proportions** driven by `MEDIA_PLACEMENTS` — 3:4 heroes, 4:5 tiles,
+  1:1 grids — rather than whatever each screen invented.
+
+### Check-in was showing a raw error where a locked state belonged
+
+The token is only mintable inside the arrival window, so being *outside* it is
+the normal state for most of a booking's life. The screen surfaced the edge
+function's refusal verbatim, which made an expected state look broken and buried
+the booking the guest opened the tab to see.
+
+Now: booking details first, always. Then either the live code, or a countdown to
+when it opens. A genuine failure *inside* the window still surfaces, because
+that one the guest needs to know about.
+
+## Fixes in the version before
 
 **The bookings/venues embed is gone.** `bookings` has no *declared* foreign key
 to `venues` — the platform schema relied on the composite FK

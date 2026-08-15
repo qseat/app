@@ -67,12 +67,12 @@ export function Waitlist() {
         {rows.map((w) => {
           const offered = w.status === 'offered'
           return (
-            <div key={w.id} className="border-b border-hair2 py-5">
-              <p className="eyebrow">{offered ? 'A table has opened' : 'Waiting'}</p>
-              <h4 className="mt-2 font-display text-[21px] leading-tight text-fg">
+            <div key={w.id} className="border-b border-hair py-5">
+              <p className="t-eyebrow">{offered ? 'A table has opened' : 'Waiting'}</p>
+              <h4 className="mt-2 t-title text-[21px] leading-tight text-fg">
                 {w.venues?.name_en ?? 'Venue'}
               </h4>
-              <p className="smallcaps mt-1 text-[9.5px] text-muted">
+              <p className="t-meta mt-1 text-[9.5px] text-muted">
                 {dateOf(w.desired_slot_start)} · {timeOf(w.desired_slot_start)} · {w.party_size}{' '}
                 guests
               </p>
@@ -92,7 +92,7 @@ export function Waitlist() {
                   </button>
                 )}
                 <button
-                  className="smallcaps flex-1 border border-hair2 py-3 text-[10px] text-muted"
+                  className="t-meta flex-1 border border-hair py-3 text-[10px] text-muted"
                   disabled={busy === w.id}
                   onClick={() => leave(w.id)}
                 >

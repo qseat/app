@@ -42,8 +42,8 @@ export function FavouriteButton({ venueId, floating }: { venueId: string; floati
       aria-label={on ? 'Remove from saved' : 'Save this place'}
       className={
         floating
-          ? 'grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-black/45'
-          : 'grid h-10 w-10 place-items-center rounded-full border border-hair'
+          ? 'grid h-11 w-11 place-items-center rounded-full bg-black/45 backdrop-blur-md transition-transform active:scale-90'
+          : 'grid h-10 w-10 place-items-center rounded-full bg-surface2 transition-transform active:scale-90'
       }
     >
       <svg

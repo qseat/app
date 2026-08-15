@@ -61,7 +61,7 @@ export function FilterSheet({
 
         <div className="mt-7 flex gap-3">
           <button
-            className="smallcaps flex-1 border border-hair2 py-3.5 text-[10px] text-muted"
+            className="btn btn-ghost flex-1"
             onClick={() => setDraft({ areaId: value.areaId ?? null })}
           >
             {t('clear')}
@@ -83,8 +83,8 @@ export function FilterSheet({
 
 function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="border-b border-hair2 pb-4 pt-5 last:border-b-0">
-      <p className="smallcaps mb-3 text-[9px] text-muted">{label}</p>
+    <div className="border-b border-hair pb-4 pt-5 last:border-b-0">
+      <p className="t-meta mb-3 text-[9px] text-muted">{label}</p>
       <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   )
@@ -102,9 +102,7 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`h-9 flex-none border px-3.5 text-[11.5px] ${
-        on ? 'border-gold text-goldt' : 'border-hair2 text-fg'
-      }`}
+      className={`chip ${on ? 'chip-on' : ''}`}
     >
       {children}
     </button>

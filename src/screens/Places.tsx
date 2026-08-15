@@ -12,7 +12,7 @@ export function Places() {
   return (
     <Screen nav={<BottomNav />}>
       <div className="px-5 pb-2 pt-[max(52px,env(safe-area-inset-top))]">
-        <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
+        <p className="text-center t-title text-[15px] uppercase tracking-[0.5em] text-goldt">
           Places
         </p>
       </div>
@@ -20,7 +20,7 @@ export function Places() {
       {areas.error && <Empty title="Couldn’t load areas" note={areas.error} />}
       <div className="grid grid-cols-2 gap-3 px-5 pt-4">
         {areas.data?.map((a) => (
-          <Link key={a.id} to={`/area/${a.slug}`} className="relative h-[150px] bg-card2">
+          <Link key={a.id} to={`/area/${a.slug}`} className="relative h-[150px] bg-surface2">
             {mediaUrl(a.hero_media_url, { width: W.tile, height: 450 }, 'area') && (
               <img
                 src={mediaUrl(a.hero_media_url, { width: W.tile, height: 450 }, 'area')!}
@@ -32,7 +32,7 @@ export function Places() {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
             <div className="absolute inset-x-3 bottom-3">
-              <p className="font-display text-[17px] leading-tight text-white">{a.name_en}</p>
+              <p className="t-title text-[17px] leading-tight text-white">{a.name_en}</p>
             </div>
           </Link>
         ))}

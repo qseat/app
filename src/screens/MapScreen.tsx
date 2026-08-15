@@ -82,7 +82,7 @@ export function MapScreen() {
     <Screen nav={<BottomNav />}>
       <TopBar title={t('map')} />
       <div className="relative">
-        <div ref={host} className="h-[calc(100vh-230px)] min-h-[420px] w-full bg-card2" />
+        <div ref={host} className="h-[calc(100vh-230px)] min-h-[420px] w-full bg-surface2" />
         {unavailable && (
           <div className="absolute inset-0 grid place-items-center bg-bg/90 px-6">
             <Empty
@@ -103,7 +103,7 @@ function MapCard({ venue, onClose }: { venue: VenueSummary; onClose: () => void 
   const img = mediaUrl(m?.storage_path, { width: W.thumb, height: 200 })
   return (
     <div className="fade-up absolute inset-x-4 bottom-4 z-[500] flex gap-3 border border-hair bg-bg p-3">
-      <Link to={`/venue/${venue.slug}`} className="h-[74px] w-[74px] flex-none bg-card2">
+      <Link to={`/venue/${venue.slug}`} className="h-[74px] w-[74px] flex-none bg-surface2">
         {img && (
           <img
             src={img}
@@ -114,12 +114,12 @@ function MapCard({ venue, onClose }: { venue: VenueSummary; onClose: () => void 
         )}
       </Link>
       <Link to={`/venue/${venue.slug}`} className="min-w-0 flex-1">
-        <p className="truncate font-display text-[19px] leading-tight text-fg">{venue.name_en}</p>
-        <p className="smallcaps mt-1 text-[9px] text-muted">
+        <p className="truncate t-title text-[19px] leading-tight text-fg">{venue.name_en}</p>
+        <p className="t-meta mt-1 text-[9px] text-muted">
           {venue.areas?.name_en}
           {venue.price_band ? ` · ${'$'.repeat(venue.price_band)}` : ''}
         </p>
-        <p className="smallcaps mt-2 text-[9px] text-goldt">Open this place ›</p>
+        <p className="t-meta mt-2 text-[9px] text-goldt">Open this place ›</p>
       </Link>
       <button onClick={onClose} aria-label="Close" className="self-start px-1 text-lg text-muted">
         ×

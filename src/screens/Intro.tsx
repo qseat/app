@@ -33,7 +33,7 @@ export function Intro() {
       </div>
 
       <div className="fade-up" key={step.n}>
-        <p className="font-display text-[64px] leading-none text-goldt">{step.n}</p>
+        <p className="t-title text-[64px] leading-none text-goldt">{step.n}</p>
         <h1 className="mt-5 font-display text-4xl leading-tight text-fg">{step.title}</h1>
         <p className="mt-5 max-w-[32ch] text-[14px] leading-relaxed text-muted">{step.body}</p>
       </div>
@@ -56,7 +56,7 @@ export function Intro() {
         </button>
         {!last && (
           <button
-            className="smallcaps mt-5 w-full text-muted"
+            className="t-meta mt-5 w-full text-muted"
             onClick={() => nav('/signin', { replace: true })}
           >
             Skip

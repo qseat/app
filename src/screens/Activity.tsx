@@ -64,13 +64,13 @@ export function Activity() {
 
       {live.length > 0 && (
         <>
-          <p className="eyebrow px-5 pb-1 pt-7">Upcoming</p>
+          <p className="t-eyebrow px-5 pb-1 pt-7">Upcoming</p>
           {live.map((b) => <Item key={b.id} b={b} />)}
         </>
       )}
       {past.length > 0 && (
         <>
-          <p className="eyebrow px-5 pb-1 pt-7">Earlier</p>
+          <p className="t-eyebrow px-5 pb-1 pt-7">Earlier</p>
           {past.map((b) => <Item key={b.id} b={b} muted />)}
         </>
       )}
@@ -82,7 +82,7 @@ export function Activity() {
 function Header() {
   return (
     <div className="px-5 pb-2 pt-[max(52px,env(safe-area-inset-top))]">
-      <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">
+      <p className="text-center t-title text-[15px] uppercase tracking-[0.5em] text-goldt">
         Bookings
       </p>
     </div>
@@ -95,7 +95,7 @@ function Item({ b, muted }: { b: Booking; muted?: boolean }) {
   return (
     <Link
       to={`/booking/${b.id}`}
-      className="flex gap-3.5 border-b border-hair2 px-5 py-4"
+      className="flex gap-3.5 border-b border-hair px-5 py-4"
       style={{ opacity: muted ? 0.6 : 1 }}
     >
       <span
@@ -112,7 +112,7 @@ function Item({ b, muted }: { b: Booking; muted?: boolean }) {
           {b.venue_spaces?.name_en ? ` · ${b.venue_spaces.name_en}` : ''}
         </p>
         <p
-          className="smallcaps pt-2 text-[8.5px]"
+          className="t-meta pt-2 text-[8.5px]"
           style={{ color: attention ? 'var(--gold-text)' : bad ? 'var(--burg)' : 'var(--muted)' }}
         >
           {statusLabel(b.status)}

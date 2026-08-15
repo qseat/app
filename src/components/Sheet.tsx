@@ -29,10 +29,20 @@ export function Sheet({
         onClick={onClose}
         className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
       />
-      <div className="fade-up relative z-10 w-full max-w-[520px] border-t border-hair bg-bg pb-[max(20px,env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-between border-b border-hair2 px-5 py-4">
-          <p className="smallcaps text-goldt">{title}</p>
-          <button onClick={onClose} className="text-lg text-muted">
+      <div
+        className="rise relative z-10 w-full max-w-[520px] bg-surface pb-[max(20px,env(safe-area-inset-bottom))] shadow-lg"
+        style={{ borderTopLeftRadius: 'var(--radius-xl)', borderTopRightRadius: 'var(--radius-xl)' }}
+      >
+        <div className="flex justify-center pt-3">
+          <span className="h-1 w-10 rounded-full bg-surface3" />
+        </div>
+        <div className="flex items-center justify-between px-6 pb-3 pt-4">
+          <p className="t-title text-[19px] text-fg">{title}</p>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="grid h-9 w-9 place-items-center rounded-full bg-surface2 text-lg text-muted"
+          >
             ×
           </button>
         </div>

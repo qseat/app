@@ -33,12 +33,12 @@ export function Review() {
       <Screen>
         <TopBar title="Your note" />
         <div className="px-6 pt-12 text-center">
-          <p className="font-display text-[46px] leading-none text-goldt">
+          <p className="t-title text-[46px] leading-none text-goldt">
             {existing.data.overall}
           </p>
-          <p className="smallcaps mt-3 text-[9px] text-muted">out of five</p>
+          <p className="t-meta mt-3 text-[9px] text-muted">out of five</p>
           {existing.data.body && (
-            <p className="mx-auto mt-7 max-w-[34ch] font-display text-[17px] italic leading-relaxed text-fg2">
+            <p className="mx-auto mt-7 max-w-[34ch] t-title text-[17px] italic leading-relaxed text-fg2">
               {existing.data.body}
             </p>
           )}
@@ -72,17 +72,17 @@ export function Review() {
     <Screen>
       <TopBar title="Leave a note" />
       <div className="px-5 pt-7">
-        <p className="eyebrow">{b.data.venues?.name_en}</p>
-        <h1 className="mt-2 font-display text-[30px] leading-tight text-fg">How was it?</h1>
+        <p className="t-eyebrow">{b.data.venues?.name_en}</p>
+        <h1 className="mt-2 t-title text-[30px] leading-tight text-fg">How was it?</h1>
         <p className="mt-2 text-[12px] text-muted">{dateOf(b.data.slot_start)}</p>
 
         <div className="pb-5 pt-8">
-          <p className="smallcaps mb-3 text-[9px] text-muted">Overall</p>
+          <p className="t-meta mb-3 text-[9px] text-muted">Overall</p>
           <Stars value={overall} onChange={setOverall} large />
         </div>
 
         {FACETS.map((f) => (
-          <div key={f.k} className="flex items-center justify-between border-t border-hair2 py-4">
+          <div key={f.k} className="flex items-center justify-between border-t border-hair py-4">
             <span className="text-[13px] text-fg">{f.l}</span>
             <Stars
               value={facets[f.k] ?? 0}
@@ -97,7 +97,7 @@ export function Review() {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="What should the next guest know?"
-          className="mt-6 w-full border border-hair bg-card p-3 text-[13px] text-fg outline-none placeholder:text-muted focus:border-gold"
+          className="mt-6 w-full border border-hair bg-surface p-3 text-[13px] text-fg outline-none placeholder:text-muted focus:border-gold"
         />
       </div>
 

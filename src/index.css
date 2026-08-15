@@ -2,45 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================================================
+   Nocturne — revised for warmth and modernity.
+
+   The palette is unchanged: obsidian, gold, bone, burgundy as punctuation. What
+   changed is everything around it. The original was austere on purpose — sharp
+   corners, hairline rules, wide-tracked small caps. Austere reads as expensive
+   in print and as unfinished on a phone, because a screen has no paper stock to
+   carry it.
+
+   So: generous radii, elevated surfaces instead of outlined ones, a tighter type
+   scale, and gold used as light rather than as line.
+   ========================================================================== */
+
 :root,
 [data-theme='nocturne'] {
-  --bg: #0b0b0c;
-  --card: #141416;
-  --card2: #1b1b1e;
-  --fg: #f2efe9;
-  --fg2: #cfcbc3;
-  --muted: #7e7c77;
-  --gold: #c8a961;
-  --gold-text: #c8a961;
-  --hair: rgba(200, 169, 97, 0.2);
-  --hair2: rgba(242, 239, 233, 0.09);
-  --burg: #7c2231;
-  --btn: #c8a961;
-  --btn-fg: #0b0b0c;
+  /* surfaces — three steps, each lifting rather than outlining */
+  --bg: #0a0a0b;
+  --surface: #131315;
+  --surface-2: #1a1a1d;
+  --surface-3: #232327;
+
+  /* type */
+  --fg: #f5f2ec;
+  --fg-2: #c9c5bd;
+  --muted: #86837d;
+  --faint: #56534f;
+
+  /* accent */
+  --gold: #d4b876;
+  --gold-soft: #e8d5a3;
+  --gold-text: #d4b876;
+  --gold-glow: rgba(212, 184, 118, 0.16);
+
+  --danger: #b8434f;
+
+  /* lines — much quieter than before; elevation does the separating */
+  --hair: rgba(245, 242, 236, 0.07);
+  --hair-strong: rgba(212, 184, 118, 0.22);
+
+  --btn: linear-gradient(180deg, #e0c684 0%, #c9a85f 100%);
+  --btn-fg: #14110a;
+
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 26px;
+  --radius-xl: 34px;
+
+  --shadow-sm: 0 2px 12px -4px rgba(0, 0, 0, 0.5);
+  --shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.85);
+
   color-scheme: dark;
 }
 
-/* Light variant of Nocturne, kept for parity with the portals' theme switch. */
 [data-theme='nocturne-light'] {
   --bg: #faf8f5;
-  --card: #ffffff;
-  --card2: #f2eee8;
+  --surface: #ffffff;
+  --surface-2: #f4f1eb;
+  --surface-3: #eae5dc;
   --fg: #16161a;
-  --fg2: #3a3a3e;
-  --muted: #8b8880;
-  --gold: #c8a961;
+  --fg-2: #45454a;
+  --muted: #86837d;
+  --faint: #b3aea6;
+  --gold: #b8973f;
+  --gold-soft: #d4b876;
   --gold-text: #8f7238;
-  --hair: rgba(143, 114, 56, 0.22);
-  --hair2: rgba(22, 22, 26, 0.09);
-  --burg: #6b1f2a;
-  --btn: #16161a;
+  --gold-glow: rgba(184, 151, 63, 0.14);
+  --danger: #a13341;
+  --hair: rgba(22, 22, 26, 0.08);
+  --hair-strong: rgba(143, 114, 56, 0.24);
+  --btn: linear-gradient(180deg, #1e1e22 0%, #121215 100%);
   --btn-fg: #faf8f5;
+  --shadow-sm: 0 2px 10px -4px rgba(0, 0, 0, 0.12);
+  --shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 24px 56px -22px rgba(0, 0, 0, 0.22);
   color-scheme: light;
 }
 
-* { -webkit-tap-highlight-color: transparent; }
+* {
+  -webkit-tap-highlight-color: transparent;
+}
 
-html, body, #root { height: 100%; }
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
@@ -52,56 +104,198 @@ body {
   overscroll-behavior-y: none;
 }
 
-.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+/* Momentum and snap, so a carousel feels like a carousel rather than a div. */
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-y: contain;
+}
+.scroll-y::-webkit-scrollbar {
+  display: none;
+}
 
-.eyebrow {
-  font-size: 9px;
-  letter-spacing: 0.32em;
+.rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-padding-left: 20px;
+  padding: 0 20px;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail > * {
+  scroll-snap-align: start;
+  flex: none;
+}
+
+/* ---- type roles ---- */
+.t-display {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  line-height: 1.04;
+}
+.t-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  line-height: 1.12;
+}
+.t-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--gold-text);
+  font-weight: 400;
 }
-.smallcaps {
-  font-size: 9.5px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+.t-meta {
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
 }
+.t-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--fg-2);
+}
+
+/* ---- surfaces ---- */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.card-lg {
+  border-radius: var(--radius-lg);
+}
+.glass {
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+}
+
+/* ---- controls ---- */
 .btn {
   display: grid;
   place-items: center;
-  height: 54px;
+  height: 56px;
+  border-radius: var(--radius);
   background: var(--btn);
   color: var(--btn-fg);
-  font-size: 11px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  transition: opacity 0.15s;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
-.btn:active { opacity: 0.8; }
-.btn:disabled { opacity: 0.35; }
+.btn:active {
+  transform: scale(0.985);
+  opacity: 0.9;
+}
+.btn:disabled {
+  opacity: 0.32;
+  transform: none;
+}
 .btn-ghost {
-  background: transparent;
-  border: 1px solid var(--gold-text);
-  color: var(--gold-text);
+  background: var(--surface-2);
+  color: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--hair);
 }
+.btn-quiet {
+  background: transparent;
+  color: var(--gold-text);
+  box-shadow: inset 0 0 0 1px var(--hair-strong);
+}
+
+.chip {
+  height: 38px;
+  padding: 0 16px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--fg-2);
+  font-size: 12.5px;
+  transition: 0.18s ease;
+  white-space: nowrap;
+}
+.chip-on {
+  background: var(--gold);
+  color: #14110a;
+  font-weight: 500;
+}
+
 .field {
   width: 100%;
-  height: 48px;
-  padding: 0 14px;
-  background: var(--card);
-  border: 1px solid var(--hair);
+  height: 54px;
+  padding: 0 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid transparent;
   color: var(--fg);
-  font-size: 14px;
+  font-size: 15px;
+  transition: border-color 0.2s;
 }
-.field::placeholder { color: var(--muted); }
-.field:focus { outline: none; border-color: var(--gold); }
+.field::placeholder {
+  color: var(--faint);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--hair-strong);
+}
+
+/* ---- imagery ---- */
 .scrim {
   background: linear-gradient(
-    180deg,
-    rgba(11, 11, 12, 0.15) 0%,
-    rgba(11, 11, 12, 0) 30%,
-    rgba(11, 11, 12, 0.95) 100%
+    to top,
+    rgba(6, 6, 7, 0.95) 0%,
+    rgba(6, 6, 7, 0.6) 26%,
+    rgba(6, 6, 7, 0.1) 52%,
+    transparent 76%
   );
 }
-@keyframes fade-up { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
-.fade-up { animation: fade-up 0.3s ease both; }
+.scrim-soft {
+  background: linear-gradient(to top, rgba(6, 6, 7, 0.86), transparent 62%);
+}
+
+/* ---- motion ---- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-2 { animation-delay: 0.06s; }
+.rise-3 { animation-delay: 0.12s; }
+.rise-4 { animation-delay: 0.18s; }
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--surface-3) 50%,
+    var(--surface) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .skeleton { animation: none; }
+  html { scroll-behavior: auto; }
+}

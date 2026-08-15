@@ -83,14 +83,14 @@ export function Profile() {
           </div>
           <div className="min-w-0">
             <p className="truncate font-display text-2xl text-fg">{name || 'Guest'}</p>
-            <p className="smallcaps truncate text-[9px] text-muted">{session.user.email}</p>
+            <p className="t-meta truncate text-[9px] text-muted">{session.user.email}</p>
             {priority.data && (
-              <p className="smallcaps mt-1 text-[8.5px] text-goldt">Priority access</p>
+              <p className="t-meta mt-1 text-[8.5px] text-goldt">Priority access</p>
             )}
           </div>
         </div>
 
-        <p className="eyebrow pb-3 pt-9">Your details</p>
+        <p className="t-eyebrow pb-3 pt-9">Your details</p>
         <div className="space-y-3">
           <input
             className="field"
@@ -117,30 +117,30 @@ export function Profile() {
 
         <Link
           to="/saved"
-          className="mt-9 flex items-center justify-between border-t border-hair2 py-4 text-[13.5px] text-fg"
+          className="mt-9 flex items-center justify-between border-t border-hair py-4 text-[13.5px] text-fg"
         >
           {t('favourites')} <span className="text-muted">›</span>
         </Link>
         <Link
           to="/waitlist"
-          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+          className="flex items-center justify-between border-b border-hair py-4 text-[13.5px] text-fg"
         >
           {t('waitlisted')} <span className="text-muted">›</span>
         </Link>
         <Link
           to="/bookings"
-          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+          className="flex items-center justify-between border-b border-hair py-4 text-[13.5px] text-fg"
         >
           {t('upcoming')} <span className="text-muted">›</span>
         </Link>
 
-        <p className="eyebrow pb-3 pt-9">{t('language')}</p>
-        <div className="flex border border-hair2">
+        <p className="t-eyebrow pb-3 pt-9">{t('language')}</p>
+        <div className="flex border border-hair">
           {(['en', 'ar'] as const).map((l) => (
             <button
               key={l}
               onClick={() => setLang(l)}
-              className={`smallcaps flex-1 py-2.5 text-[10px] ${
+              className={`t-meta flex-1 py-2.5 text-[10px] ${
                 lang === l ? 'bg-gold text-black' : 'text-muted'
               }`}
             >
@@ -149,13 +149,13 @@ export function Profile() {
           ))}
         </div>
 
-        <p className="eyebrow pb-3 pt-9">{t('appearance')}</p>
-        <div className="flex border border-hair2">
+        <p className="t-eyebrow pb-3 pt-9">{t('appearance')}</p>
+        <div className="flex border border-hair">
           {THEMES.map((t) => (
             <button
               key={t.v}
               onClick={() => applyTheme(t.v)}
-              className={`smallcaps flex-1 py-2.5 text-[10px] ${
+              className={`t-meta flex-1 py-2.5 text-[10px] ${
                 theme === t.v ? 'bg-gold text-black' : 'text-muted'
               }`}
             >
@@ -164,29 +164,29 @@ export function Profile() {
           ))}
         </div>
 
-        <p className="eyebrow pb-1 pt-9">{t('legal')}</p>
+        <p className="t-eyebrow pb-1 pt-9">{t('legal')}</p>
         <a
           href="https://web.qseat.qa/terms"
-          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+          className="flex items-center justify-between border-b border-hair py-4 text-[13.5px] text-fg"
         >
           Terms of use <span className="text-muted">›</span>
         </a>
         <a
           href="https://web.qseat.qa/privacy"
-          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+          className="flex items-center justify-between border-b border-hair py-4 text-[13.5px] text-fg"
         >
           Privacy policy <span className="text-muted">›</span>
         </a>
         <a
           href="https://web.qseat.qa/support"
-          className="flex items-center justify-between border-b border-hair2 py-4 text-[13.5px] text-fg"
+          className="flex items-center justify-between border-b border-hair py-4 text-[13.5px] text-fg"
         >
           Support <span className="text-muted">›</span>
         </a>
 
         <button
           onClick={() => setConfirmDelete(true)}
-          className="flex w-full items-center justify-between border-b border-hair2 py-4 text-left text-[13.5px]"
+          className="flex w-full items-center justify-between border-b border-hair py-4 text-left text-[13.5px]"
           style={{ color: 'var(--burg)' }}
         >
           Delete my account <span className="text-muted">›</span>
@@ -194,7 +194,7 @@ export function Profile() {
 
         {confirmDelete && (
           <div className="mt-5 border p-5" style={{ borderColor: 'var(--burg)' }}>
-            <p className="font-display text-[19px] text-fg">Delete your account?</p>
+            <p className="t-title text-[19px] text-fg">Delete your account?</p>
             <p className="mt-3 text-[12px] leading-relaxed text-muted">
               Your name, contact details, saved places, lists and reviews are erased and cannot be
               recovered. Venues keep their own record of covers they served, without your details
@@ -224,7 +224,7 @@ export function Profile() {
                 {deleting ? 'Erasing' : 'Delete everything'}
               </button>
               <button
-                className="smallcaps flex-1 border border-hair2 py-3 text-[10px] text-muted"
+                className="t-meta flex-1 border border-hair py-3 text-[10px] text-muted"
                 onClick={() => setConfirmDelete(false)}
               >
                 Keep my account
@@ -236,7 +236,7 @@ export function Profile() {
         <button className="btn btn-ghost mt-9 w-full" onClick={signOut}>
           {t('signOut')}
         </button>
-        <p className="smallcaps py-8 text-center text-[9px] text-muted">
+        <p className="t-meta py-8 text-center text-[9px] text-muted">
           QSeat 0.1 · Developed by Odysense
         </p>
       </div>
@@ -247,7 +247,7 @@ export function Profile() {
 function Header() {
   return (
     <div className="px-5 pb-2 pt-[max(52px,env(safe-area-inset-top))]">
-      <p className="text-center font-display text-[15px] uppercase tracking-[0.5em] text-goldt">Me</p>
+      <p className="text-center t-title text-[15px] uppercase tracking-[0.5em] text-goldt">Me</p>
     </div>
   )
 }

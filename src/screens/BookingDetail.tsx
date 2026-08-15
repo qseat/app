@@ -72,23 +72,23 @@ export function BookingDetail() {
           </svg>
         </div>
 
-        <p className="eyebrow mt-6">{statusLabel(booking.status)}</p>
-        <h1 className="mt-3 font-display text-[30px] leading-tight text-fg">
+        <p className="t-eyebrow mt-6">{statusLabel(booking.status)}</p>
+        <h1 className="mt-3 t-title text-[30px] leading-tight text-fg">
           {booking.venues?.name_en}
         </h1>
-        <p className="smallcaps mt-2 text-[10px] text-muted">
+        <p className="t-meta mt-2 text-[10px] text-muted">
           {dateOf(booking.slot_start)} · {timeOf(booking.slot_start)} ·{' '}
           {booking.party_size} {booking.party_size === 1 ? 'guest' : 'guests'}
         </p>
         {booking.venue_spaces?.name_en && (
-          <p className="mt-1 font-display text-[17px] text-fg2">{booking.venue_spaces.name_en}</p>
+          <p className="mt-1 t-title text-[17px] text-fg2">{booking.venue_spaces.name_en}</p>
         )}
       </div>
 
       {countered && booking.counter_proposed_slot_start && (
         <div className="mx-5 mt-8 border border-gold p-5">
-          <p className="eyebrow">The house offered a different time</p>
-          <p className="mt-3 font-display text-[26px] text-fg">
+          <p className="t-eyebrow">The house offered a different time</p>
+          <p className="mt-3 t-title text-[26px] text-fg">
             {timeOf(booking.counter_proposed_slot_start)}
           </p>
           <p className="mt-1 text-[12px] text-muted">
@@ -138,7 +138,7 @@ export function BookingDetail() {
               key={m}
               disabled={busy}
               onClick={() => act('late_notified', `Guest running ${m} minutes late`, { delay_minutes: m })}
-              className="smallcaps flex-1 border border-hair2 py-3 text-[10px] text-goldt"
+              className="t-meta flex-1 border border-hair py-3 text-[10px] text-goldt"
             >
               +{m} min
             </button>
@@ -155,15 +155,15 @@ export function BookingDetail() {
         booking.status,
       ) && (
         <div className="mt-10 px-5">
-          <p className="eyebrow pb-3">Who's coming</p>
+          <p className="t-eyebrow pb-3">Who's coming</p>
           {(guests.data ?? []).map((g) => (
             <div
               key={g.id}
-              className="flex items-center justify-between border-b border-hair2 py-3"
+              className="flex items-center justify-between border-b border-hair py-3"
             >
               <span className="text-[13px] text-fg">{g.display_name ?? 'Guest'}</span>
               <span
-                className="smallcaps text-[8.5px]"
+                className="t-meta text-[8.5px]"
                 style={{
                   color: g.rsvp_status === 'accepted' ? 'var(--gold-text)' : 'var(--muted)',
                 }}
@@ -206,15 +206,15 @@ export function BookingDetail() {
 
       {['confirmed', 'late_notified'].includes(booking.status) && (
         <div className="mt-10 px-5">
-          <p className="eyebrow pb-3">Anything for the table</p>
+          <p className="t-eyebrow pb-3">Anything for the table</p>
           {(extras.data ?? []).map((x) => (
-            <div key={x.id} className="flex items-baseline justify-between border-b border-hair2 py-3">
+            <div key={x.id} className="flex items-baseline justify-between border-b border-hair py-3">
               <div>
                 <span className="text-[13px] text-fg">{x.extra_type.replace(/_/g, ' ')}</span>
                 {x.note && <p className="mt-0.5 text-[11.5px] text-muted">{x.note}</p>}
               </div>
               <span
-                className="smallcaps text-[8.5px]"
+                className="t-meta text-[8.5px]"
                 style={{
                   color:
                     x.status === 'confirmed'
@@ -234,7 +234,7 @@ export function BookingDetail() {
                 key={k}
                 onClick={() => setExtraType(k)}
                 className={`h-9 border px-3.5 text-[11.5px] ${
-                  extraType === k ? 'border-gold text-goldt' : 'border-hair2 text-fg'
+                  extraType === k ? 'border-gold text-goldt' : 'border-hair text-fg'
                 }`}
               >
                 {k.replace(/_/g, ' ')}
@@ -297,8 +297,8 @@ export function BookingDetail() {
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-6 border-b border-hair2 py-3.5">
-      <span className="smallcaps flex-none text-[9px] text-muted">{k}</span>
+    <div className="flex items-baseline justify-between gap-6 border-b border-hair py-3.5">
+      <span className="t-meta flex-none text-[9px] text-muted">{k}</span>
       <span className="text-right text-[13px] text-fg">{v}</span>
     </div>
   )

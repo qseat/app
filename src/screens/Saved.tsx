@@ -56,12 +56,12 @@ export function Saved() {
         {favs.data?.map((v) => <VenueRow key={v.id} venue={v} />)}
       </div>
 
-      <p className="eyebrow px-5 pb-2 pt-9">{t('lists')}</p>
+      <p className="t-eyebrow px-5 pb-2 pt-9">{t('lists')}</p>
       <div className="px-5">
         {lists.data?.map((l) => (
-          <div key={l.id} className="flex items-baseline justify-between border-b border-hair2 py-4">
-            <span className="font-display text-[19px] text-fg">{l.name}</span>
-            <span className="smallcaps text-[9px] text-muted">
+          <div key={l.id} className="flex items-baseline justify-between border-b border-hair py-4">
+            <span className="t-title text-[19px] text-fg">{l.name}</span>
+            <span className="t-meta text-[9px] text-muted">
               {l.saved_list_items?.length ?? 0} places
             </span>
           </div>

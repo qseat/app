@@ -50,7 +50,7 @@ export function SignIn() {
       <div className="flex justify-center">
         <Wordmark size={24} />
       </div>
-      <h1 className="mt-9 font-display text-[34px] leading-tight text-fg">
+      <h1 className="mt-9 t-title text-[34px] leading-tight text-fg">
         {mode === 'signin' ? 'Welcome back' : 'Create an account'}
       </h1>
       <p className="mt-2 text-[13px] leading-relaxed text-muted">
@@ -106,7 +106,7 @@ export function SignIn() {
       </button>
 
       <button
-        className="smallcaps mt-6 text-muted"
+        className="t-meta mt-6 text-muted"
         onClick={() => {
           setMode(mode === 'signin' ? 'signup' : 'signin')
           setError(null)
@@ -115,7 +115,7 @@ export function SignIn() {
         {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign in'}
       </button>
 
-      <Link to="/" className="smallcaps mt-8 text-center text-muted">
+      <Link to="/" className="t-meta mt-8 text-center text-muted">
         Browse without an account
       </Link>
     </div>

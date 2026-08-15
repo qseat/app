@@ -55,7 +55,7 @@ export function Venue() {
   return (
     <Screen nav={<BottomNav />}>
       <div className="relative h-[360px]">
-        <div className="absolute inset-0 bg-card2">
+        <div className="absolute inset-0 bg-surface2">
           {img && (
             <img
               src={img}
@@ -96,8 +96,8 @@ export function Venue() {
           <FavouriteButton venueId={venue.id} floating />
         </div>
         <div className="absolute inset-x-5 bottom-5">
-          <p className="eyebrow">{venue.areas?.name_en}</p>
-          <h1 className="mt-2 font-display text-[36px] leading-none text-white">
+          <p className="t-eyebrow">{venue.areas?.name_en}</p>
+          <h1 className="mt-2 t-title text-[36px] leading-none text-white">
             {localised(lang, venue.name_en, venue.name_ar)}
           </h1>
           {venue.name_ar && (
@@ -128,10 +128,10 @@ export function Venue() {
 
       {ratings.data?.[venue.id] && (
         <div className="flex items-baseline gap-3 px-5 pt-6">
-          <span className="font-display text-[38px] leading-none text-goldt">
+          <span className="t-title text-[38px] leading-none text-goldt">
             {ratings.data[venue.id].rating.toFixed(1)}
           </span>
-          <span className="smallcaps text-[9px] text-muted">
+          <span className="t-meta text-[9px] text-muted">
             from {ratings.data[venue.id].review_count} visits
           </span>
         </div>
@@ -195,13 +195,13 @@ export function Venue() {
           <SectionHead label={t('reviews')} />
           <div className="px-5">
             {reviews.data!.slice(0, 4).map((r) => (
-              <div key={r.id} className="border-b border-hair2 py-4">
+              <div key={r.id} className="border-b border-hair py-4">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-[20px] text-goldt">{r.overall}</span>
-                  <span className="smallcaps text-[8.5px] text-muted">{dateOf(r.created_at)}</span>
+                  <span className="t-title text-[20px] text-goldt">{r.overall}</span>
+                  <span className="t-meta text-[8.5px] text-muted">{dateOf(r.created_at)}</span>
                 </div>
                 {r.body && (
-                  <p className="mt-2 font-display text-[15px] italic leading-relaxed text-fg2">
+                  <p className="mt-2 t-title text-[15px] italic leading-relaxed text-fg2">
                     {r.body}
                   </p>
                 )}
@@ -229,7 +229,7 @@ function SpaceCard({ space, venueSlug }: { space: VenueSpace; venueSlug: string 
   const img = mediaUrl(sm?.storage_path, { width: W.tile, height: 260 })
   return (
     <Link to={`/book/${venueSlug}?space=${space.id}`} className="w-[132px] flex-none">
-      <div className="h-[86px] bg-card2">
+      <div className="h-[86px] bg-surface2">
         {img && (
           <img
             src={img}
@@ -240,8 +240,8 @@ function SpaceCard({ space, venueSlug }: { space: VenueSpace; venueSlug: string 
           />
         )}
       </div>
-      <p className="mt-2 font-display text-[13px] text-fg">{space.name_en}</p>
-      <p className="smallcaps text-[8.5px] text-muted">
+      <p className="mt-2 t-title text-[13px] text-fg">{space.name_en}</p>
+      <p className="t-meta text-[8.5px] text-muted">
         Seats {space.min_party}–{space.max_party}
       </p>
     </Link>
@@ -261,7 +261,7 @@ function Accordion({
   children: React.ReactNode
 }) {
   return (
-    <div className="border-b border-hair2">
+    <div className="border-b border-hair">
       <button onClick={onToggle} className="flex w-full items-center justify-between py-4">
         <span className="text-[13px] text-fg">{title}</span>
         <span
@@ -298,7 +298,7 @@ function Action({ href, label, icon }: { href: string; label: string; icon: stri
       <svg viewBox="0 0 24 24" className="mx-auto mb-2 h-4 w-4 fill-none stroke-goldt stroke-[1.3]">
         {ICONS[icon]}
       </svg>
-      <em className="smallcaps not-italic text-[8.5px] text-muted">{label}</em>
+      <em className="t-meta not-italic text-[8.5px] text-muted">{label}</em>
     </a>
   )
 }

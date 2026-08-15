@@ -123,7 +123,7 @@ export function Book() {
     <Screen>
       <TopBar title="Reserve" />
       <div className="px-5 pt-6">
-        <p className="eyebrow">
+        <p className="t-eyebrow">
           {v.data.name_en}
           {space ? ` · ${space.name_en}` : ''}
         </p>
@@ -155,7 +155,7 @@ export function Book() {
                 key={d.key}
                 onClick={() => setDateKey(d.key)}
                 className={`flex h-14 w-[52px] flex-none flex-col items-center justify-center border ${
-                  d.key === dateKey ? 'border-gold bg-gold text-black' : 'border-hair2 text-fg'
+                  d.key === dateKey ? 'border-gold bg-gold text-black' : 'border-hair text-fg'
                 }`}
               >
                 <span className="text-[9px] uppercase tracking-[0.14em] opacity-70">{d.dow}</span>
@@ -193,8 +193,8 @@ export function Book() {
                       : queued
                         ? 'border-gold text-goldt'
                         : full
-                          ? 'border-hair2 text-fg opacity-40'
-                          : 'border-hair2 text-fg'
+                          ? 'border-hair text-fg opacity-40'
+                          : 'border-hair text-fg'
                   }`}
                 >
                   {timeOf(s.slot_start!)}
@@ -239,7 +239,7 @@ export function Book() {
             rows={3}
             maxLength={400}
             placeholder="A quiet corner, a high chair, a view of the water…"
-            className="w-full border border-hair bg-card p-3 text-[13px] text-fg outline-none placeholder:text-muted focus:border-gold"
+            className="w-full border border-hair bg-surface p-3 text-[13px] text-fg outline-none placeholder:text-muted focus:border-gold"
           />
         </Field>
       </div>
@@ -272,10 +272,10 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <div className="border-b border-hair2 pb-4 pt-6">
+    <div className="border-b border-hair pb-4 pt-6">
       <div className="mb-3 flex items-baseline justify-between">
-        <span className="smallcaps text-[9px] text-muted">{label}</span>
-        {value && <span className="font-display text-[16px] text-goldt">{value}</span>}
+        <span className="t-meta text-[9px] text-muted">{label}</span>
+        {value && <span className="t-title text-[16px] text-goldt">{value}</span>}
       </div>
       {children}
     </div>
@@ -297,7 +297,7 @@ function Chip({
     <button
       onClick={onClick}
       className={`${square ? 'h-10 w-10' : 'h-10 px-3.5'} flex-none border text-[12.5px] ${
-        on ? 'border-gold bg-gold text-black' : 'border-hair2 text-fg'
+        on ? 'border-gold bg-gold text-black' : 'border-hair text-fg'
       }`}
     >
       {children}
