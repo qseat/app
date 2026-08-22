@@ -34,7 +34,7 @@ export function Intro() {
 
       <div className="fade-up" key={step.n}>
         <p className="t-title text-[64px] leading-none text-goldt">{step.n}</p>
-        <h1 className="mt-5 font-display text-4xl leading-tight text-fg">{step.title}</h1>
+        <h1 className="mt-5 t-display text-4xl leading-tight text-fg">{step.title}</h1>
         <p className="mt-5 max-w-[32ch] text-[14px] leading-relaxed text-muted">{step.body}</p>
       </div>
 

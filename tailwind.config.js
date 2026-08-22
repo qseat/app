@@ -33,7 +33,7 @@ export default {
         lg: 'var(--shadow-lg)',
       },
       fontFamily: {
-        display: ['"Cormorant Garamond"', 'serif'],
+        display: ['Jost', 'system-ui', 'sans-serif'],
         ui: ['Jost', 'system-ui', 'sans-serif'],
       },
     },

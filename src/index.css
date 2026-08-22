@@ -44,10 +44,11 @@
   --btn: linear-gradient(180deg, #e0c684 0%, #c9a85f 100%);
   --btn-fg: #14110a;
 
-  --radius-sm: 12px;
-  --radius: 18px;
-  --radius-lg: 26px;
-  --radius-xl: 34px;
+  /* Softened, not rounded. The first pass over-corrected from sharp corners. */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 22px;
 
   --shadow-sm: 0 2px 12px -4px rgba(0, 0, 0, 0.5);
   --shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.7);
@@ -181,17 +182,21 @@ body {
   flex: 0 0 calc(100% - 40px);
 }
 
-/* ---- type roles ---- */
+/* ---- type roles ----
+   One family throughout. Cormorant was doing the "expensive" work by being a
+   serif, which on a phone reads as decorative rather than considered. Jost at
+   a light weight and open tracking carries it without the costume. */
 .t-display {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: Jost, system-ui, sans-serif;
   font-weight: 300;
-  letter-spacing: -0.01em;
-  line-height: 1.04;
+  letter-spacing: 0.005em;
+  line-height: 1.08;
 }
 .t-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: Jost, system-ui, sans-serif;
   font-weight: 400;
-  line-height: 1.12;
+  letter-spacing: 0.005em;
+  line-height: 1.18;
 }
 .t-eyebrow {
   font-size: 10px;

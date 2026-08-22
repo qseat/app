@@ -9,12 +9,13 @@ import { fetchVenue, fetchRatings, fetchVenueReviews } from '../data/queries'
 import { mediaUrl, focalStyle, W } from '../lib/media'
 import { useI18n, localised } from '../lib/i18n'
 import { FavouriteButton } from '../components/FavouriteButton'
-import { dateOf } from '../lib/format'
+import { clockOf, dateOf } from '../lib/format'
+import { openState } from '../lib/hours'
+import { PriceBand } from '../components/PriceBand'
 import type { Rating, Review, VenueSpace } from '../data/types'
 import { useAsync as useAsync2 } from '../lib/useAsync'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const hhmm = (t: string) => t.slice(0, 5)
 
 export function Venue() {
   const { slug = '' } = useParams()
@@ -37,7 +38,7 @@ export function Venue() {
     if (!el) return
     setShot(Math.round(el.scrollLeft / el.clientWidth))
   }
-  const [open, setOpen] = useState<string | null>('hours')
+  const [open, setOpen] = useState<string | null>(null)
 
   if (v.loading) return <Screen nav={<BottomNav />}><Spinner full label="Loading" /></Screen>
   if (v.error || !v.data)
@@ -56,6 +57,7 @@ export function Venue() {
     .filter((s) => s.is_active !== false)
     .sort((a, b) => (a.display_order ?? 99) - (b.display_order ?? 99))
   const hours = (venue.venue_hours ?? []).sort((a, b) => a.day_of_week - b.day_of_week)
+  const state = openState(venue.venue_hours)
 
   return (
     <Screen nav={<BottomNav />}>
@@ -132,11 +134,7 @@ export function Venue() {
           <h1 className="mt-2 t-title text-[36px] leading-none text-white">
             {localised(lang, venue.name_en, venue.name_ar)}
           </h1>
-          {venue.name_ar && (
-            <p className="mt-1 text-[15px] text-white/70" dir="rtl">
-              {venue.name_ar}
-            </p>
-          )}
+
         </div>
       </div>
 
@@ -187,6 +185,26 @@ export function Venue() {
       )}
 
       <div className="px-5 pt-7">
+        <div className="flex items-center justify-between border-b border-hair pb-4">
+          <div>
+            <p className="t-eyebrow" style={{ color: state.isOpen ? 'var(--gold-text)' : 'var(--muted)' }}>
+              {state.isOpen ? 'Open now' : 'Closed'}
+            </p>
+            <p className="mt-1.5 text-[13px] text-fg">
+              {state.today.length === 0
+                ? 'Not open today'
+                : state.isOpen
+                  ? `Closing at ${clockOf(state.closesAt!)}`
+                  : `Opens today at ${clockOf(state.opensAt!)}`}
+            </p>
+          </div>
+          {venue.price_band && (
+            <span className="text-goldt">
+              <PriceBand band={venue.price_band} size={14} />
+            </span>
+          )}
+        </div>
+
         <Accordion
           id="hours"
           title={t('hours')}
@@ -200,8 +218,8 @@ export function Venue() {
               <div key={i} className="flex justify-between py-1 text-[12.5px]">
                 <span className="text-muted">{DAYS[h.day_of_week]}</span>
                 <span className="text-fg">
-                  {hhmm(h.opens_at)} — {hhmm(h.closes_at)}
-                  {h.closes_next_day ? ' ⁺¹' : ''}
+                  {clockOf(h.opens_at)} — {clockOf(h.closes_at)}
+                  {h.closes_next_day ? ' \u207a\u00b9' : ''}
                 </span>
               </div>
             ))

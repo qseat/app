@@ -19,6 +19,13 @@ export interface VenueMedia {
   focal_y?: number | null
 }
 
+export interface VenueHours {
+  day_of_week: number
+  opens_at: string
+  closes_at: string
+  closes_next_day: boolean | null
+}
+
 export interface VenueSummary {
   id: string
   slug: string
@@ -28,6 +35,7 @@ export interface VenueSummary {
   area_id: string
   areas?: { name_en: string; slug: string } | null
   venue_media?: VenueMedia[]
+  venue_hours?: VenueHours[]
 }
 
 export interface VenueSpace {
@@ -48,13 +56,6 @@ export interface VenueSpace {
     focal_x?: number | null
     focal_y?: number | null
   }[]
-}
-
-export interface VenueHours {
-  day_of_week: number
-  opens_at: string
-  closes_at: string
-  closes_next_day: boolean | null
 }
 
 export interface VenueDetail extends VenueSummary {

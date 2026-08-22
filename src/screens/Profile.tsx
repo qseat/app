@@ -4,26 +4,22 @@ import { Screen } from '../components/Screen'
 import { BottomNav } from '../components/BottomNav'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
-import { fetchPriorityStatus, fetchProfile, saveProfile } from '../data/queries'
+import { fetchPriorityStatus, fetchProfile } from '../data/queries'
 import { deleteMyAccount } from '../lib/deletion'
 import { useAuth } from '../auth/AuthProvider'
 import { useI18n } from '../lib/i18n'
-
-const THEMES = [
-  { v: 'nocturne', l: 'Dark' },
-  { v: 'nocturne-light', l: 'Light' },
-]
+import { setClock, useClock } from '../lib/prefs'
 
 export function Profile() {
   const { session, user, signOut } = useAuth()
   const { t, lang, setLang } = useI18n()
+  const clock = useClock()
   const profile = useAsync(
     () => (user ? fetchProfile(user.id) : Promise.resolve(null)),
     [user?.id],
   )
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [saved, setSaved] = useState(false)
   const priority = useAsync(
     () => (user ? fetchPriorityStatus() : Promise.resolve(false)),
     [user?.id],
@@ -55,12 +51,7 @@ export function Profile() {
     }
   }
 
-  async function save() {
-    if (!user) return
-    await saveProfile(user.id, { full_name: name.trim() || null, phone: phone.trim() || null })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2200)
-  }
+
 
   if (!session)
     return (
@@ -78,11 +69,11 @@ export function Profile() {
       <Header />
       <div className="px-5 pt-6">
         <div className="flex items-center gap-4">
-          <div className="grid h-14 w-14 place-items-center rounded-full border border-hair font-display text-xl text-goldt">
+          <div className="grid h-14 w-14 place-items-center rounded-full border border-hair t-display text-xl text-goldt">
             {(name || session.user.email || '?').charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="truncate font-display text-2xl text-fg">{name || 'Guest'}</p>
+            <p className="truncate t-display text-2xl text-fg">{name || 'Guest'}</p>
             <p className="t-meta truncate text-[9px] text-muted">{session.user.email}</p>
             {priority.data && (
               <p className="t-meta mt-1 text-[8.5px] text-goldt">Priority access</p>
@@ -91,29 +82,18 @@ export function Profile() {
         </div>
 
         <p className="t-eyebrow pb-3 pt-9">Your details</p>
-        <div className="space-y-3">
-          <input
-            className="field"
-            placeholder="Full name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <input
-            className="field"
-            placeholder="Mobile (+974)"
-            inputMode="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+        <div className="card overflow-hidden">
+          <Detail label="Name" value={name || '—'} />
+          <Detail label="Mobile" value={phone || '—'} />
+          <Detail label="Email" value={session.user.email ?? '—'} last />
         </div>
-        <button className="btn mt-4 w-full" onClick={save}>
-          {saved ? 'Saved' : 'Save'}
-        </button>
-        {profile.data === null && !profile.loading && (
-          <p className="pt-3 text-[11px] leading-relaxed text-muted">
-            Stored on your account until profiles ship; then it moves to your QSeat profile.
-          </p>
-        )}
+        <p className="pt-3 text-[11.5px] leading-relaxed text-muted">
+          These are the details venues see when you arrive. To change them, contact{' '}
+          <a href="mailto:support@qseat.qa" className="text-goldt">
+            support@qseat.qa
+          </a>
+          .
+        </p>
 
         <Link
           to="/saved"
@@ -134,34 +114,36 @@ export function Profile() {
           {t('upcoming')} <span className="text-muted">›</span>
         </Link>
 
-        <p className="t-eyebrow pb-3 pt-9">{t('language')}</p>
-        <div className="flex border border-hair">
-          {(['en', 'ar'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`t-meta flex-1 py-2.5 text-[10px] ${
-                lang === l ? 'bg-gold text-black' : 'text-muted'
-              }`}
-            >
-              {l === 'en' ? 'English' : 'العربية'}
-            </button>
-          ))}
-        </div>
-
-        <p className="t-eyebrow pb-3 pt-9">{t('appearance')}</p>
-        <div className="flex border border-hair">
-          {THEMES.map((t) => (
-            <button
-              key={t.v}
-              onClick={() => applyTheme(t.v)}
-              className={`t-meta flex-1 py-2.5 text-[10px] ${
-                theme === t.v ? 'bg-gold text-black' : 'text-muted'
-              }`}
-            >
-              {t.l}
-            </button>
-          ))}
+        <p className="t-eyebrow pb-3 pt-9">Preferences</p>
+        <div className="card overflow-hidden">
+          <Segment
+            label={t('language')}
+            options={[
+              { v: 'en', l: 'English' },
+              { v: 'ar', l: 'العربية' },
+            ]}
+            value={lang}
+            onChange={(v) => setLang(v as 'en' | 'ar')}
+          />
+          <Segment
+            label={t('appearance')}
+            options={[
+              { v: 'nocturne', l: 'Dark' },
+              { v: 'nocturne-light', l: 'Light' },
+            ]}
+            value={theme}
+            onChange={applyTheme}
+          />
+          <Segment
+            label="Time"
+            options={[
+              { v: '12', l: '12-hour' },
+              { v: '24', l: '24-hour' },
+            ]}
+            value={clock}
+            onChange={(v) => setClock(v as '12' | '24')}
+            last
+          />
         </div>
 
         <p className="t-eyebrow pb-1 pt-9">{t('legal')}</p>
@@ -248,6 +230,69 @@ function Header() {
   return (
     <div className="px-5 pb-2 pt-[max(52px,env(safe-area-inset-top))]">
       <p className="text-center t-title text-[15px] uppercase tracking-[0.5em] text-goldt">Me</p>
+    </div>
+  )
+}
+
+function Detail({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div
+      className="flex items-center justify-between px-4 py-3.5"
+      style={{ borderBottom: last ? 'none' : '1px solid var(--hair)' }}
+    >
+      <span className="t-meta text-[11.5px]">{label}</span>
+      <span className="truncate pl-4 text-[13.5px] text-fg">{value}</span>
+    </div>
+  )
+}
+
+/**
+ * A sliding segmented control rather than two bordered boxes. The indicator
+ * moves, so the change reads as one state with two positions instead of two
+ * buttons where one happens to be lit.
+ */
+function Segment({
+  label,
+  options,
+  value,
+  onChange,
+  last,
+}: {
+  label: string
+  options: { v: string; l: string }[]
+  value: string
+  onChange: (v: string) => void
+  last?: boolean
+}) {
+  const i = Math.max(0, options.findIndex((o) => o.v === value))
+  return (
+    <div
+      className="flex items-center justify-between gap-4 px-4 py-3"
+      style={{ borderBottom: last ? 'none' : '1px solid var(--hair)' }}
+    >
+      <span className="t-meta text-[11.5px]">{label}</span>
+      <div
+        className="relative flex flex-none rounded-sm bg-surface2 p-[3px]"
+        style={{ width: options.length * 92 }}
+      >
+        <span
+          className="absolute inset-y-[3px] rounded-[4px] bg-gold transition-transform duration-200 ease-out"
+          style={{
+            width: 92 - 6,
+            transform: `translateX(${i * 92}px)`,
+          }}
+        />
+        {options.map((o) => (
+          <button
+            key={o.v}
+            onClick={() => onChange(o.v)}
+            className="relative z-10 h-8 flex-1 text-[11.5px] transition-colors"
+            style={{ color: o.v === value ? '#14110a' : 'var(--muted)' }}
+          >
+            {o.l}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

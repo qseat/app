@@ -7,6 +7,52 @@ platform and a working product if App Store publication is delayed.
 Nocturne theme, mobile-first, capped at 520px so it stays app-like on desktop.
 Dark and light, English and Arabic with full RTL.
 
+## v6 — typography, time, price and state
+
+**One typeface.** Cormorant Garamond is gone. It was doing the "expensive" work
+by being a serif, which on a phone reads as decorative rather than considered —
+Jost at a light weight with open tracking carries it without the costume.
+
+**Radii reduced.** 6 / 10 / 14 / 22 px, down from 12 / 18 / 26 / 34. The first
+pass over-corrected away from sharp corners.
+
+**Bottom bar: icons only, active fills.** No labels. Each icon is drawn twice —
+an outline path for rest, a solid path for active — because scaling a stroke to
+imply weight looks like a rendering artefact rather than a state.
+
+**12-hour time with AM/PM**, toggleable to 24-hour in Preferences. `timeOf()`
+reads the device preference, so every screen follows one setting.
+
+**Price is QAR, not dollars.** The band renders as stacked banknotes, filled to
+the band and outlined beyond it. The filter sheet names the actual ranges —
+"QAR 50 – 120" — because a row of glyphs tells you the relative price and
+nothing about the absolute one.
+
+**Open and closed are visible.** `openState()` computes it from `venue_hours`,
+handling the two cases a naive comparison gets wrong: a shift closing after
+midnight belongs to the day it opened, and yesterday's late shift can still be
+running now. Closed venues render greyscaled at reduced opacity with a Closed
+badge and their next opening time.
+
+**Venue hours are a summary, not a table.** "Open now · Closing at 1:00 AM" or
+"Closed · Opens today at 12:30 PM", with the full week behind a collapsed
+accordion rather than one open by default.
+
+**The Arabic name no longer appears beside the English one.** `localised()`
+picks one per interface language; showing both was a bilingual product
+displaying its own plumbing.
+
+**Areas show near-full-width plates.** A thumbnail beside text tells you nothing
+about a room you are deciding whether to sit in.
+
+**Profile details are read-only.** Name, mobile and email are what a venue sees
+on arrival, so they are fixed at signup with a support address to change them —
+no Save button that implies otherwise.
+
+**Preferences are sliding segmented controls** — language, appearance and clock
+in one card, with an indicator that moves, so a change reads as one state with
+two positions rather than two buttons where one happens to be lit.
+
 ## Scrolling fixes (v5)
 
 Rails were not sliding, which turned out to be three separate things that only

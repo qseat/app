@@ -1,11 +1,36 @@
+import { getClock } from './prefs'
+
 const QATAR_TZ = 'Asia/Qatar'
 
+/** Respects the device clock preference; 12-hour with AM/PM by default. */
 export function timeOf(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: QATAR_TZ,
-  })
+  const h12 = getClock() === '12'
+  return new Date(iso)
+    .toLocaleTimeString('en-GB', {
+      hour: h12 ? 'numeric' : '2-digit',
+      minute: '2-digit',
+      hour12: h12,
+      timeZone: QATAR_TZ,
+    })
+    .replace(/\s?(am|pm)/i, (m) => m.trim().toUpperCase())
+}
+
+/** A wall-clock "HH:MM" from the database, formatted the same way. */
+export function clockOf(hhmm: string): string {
+  if (getClock() === '24') return hhmm.slice(0, 5)
+  const h = Number(hhmm.slice(0, 2))
+  const m = hhmm.slice(3, 5)
+  const suffix = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 === 0 ? 12 : h % 12
+  return `${hour}:${m} ${suffix}`
+}
+
+/** Price band as a QAR amount band, never a dollar sign. */
+export const PRICE_BAND_LABEL: Record<number, string> = {
+  1: 'Under QAR 50',
+  2: 'QAR 50 – 120',
+  3: 'QAR 120 – 250',
+  4: 'QAR 250+',
 }
 
 export function dateOf(iso: string): string {

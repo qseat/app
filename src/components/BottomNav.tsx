@@ -1,27 +1,28 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { useI18n } from '../lib/i18n'
 
-/* Icons at 1.4 stroke on a 24 grid, rounded joins — softer than the original
-   1.3 butt-capped set, which read as technical rather than considered. */
-const Icon = {
-  home: (
-    <>
-      <path d="M4.5 10.5 12 4l7.5 6.5v8.2a1.3 1.3 0 0 1-1.3 1.3h-3.6v-5.4h-5.2V20H5.8a1.3 1.3 0 0 1-1.3-1.3Z" />
-    </>
-  ),
+/**
+ * Icons only, no labels. The active tab fills rather than changing colour —
+ * a filled glyph reads at a glance where a tinted outline does not, and losing
+ * the labels buys back the vertical space that made the bar feel heavy.
+ *
+ * Each icon is drawn twice: an outline path for rest, a solid path for active.
+ * Scaling a stroke to imply weight looks like a rendering artefact.
+ */
+const Outline: Record<string, JSX.Element> = {
+  home: <path d="M4.6 10.4 12 4.2l7.4 6.2v8a1.4 1.4 0 0 1-1.4 1.4h-3.7v-5.5H9.7v5.5H6a1.4 1.4 0 0 1-1.4-1.4Z" />,
   places: (
     <>
-      <path d="M12 20.5s6.6-5.3 6.6-10.3a6.6 6.6 0 1 0-13.2 0c0 5 6.6 10.3 6.6 10.3Z" />
-      <circle cx="12" cy="10" r="2.3" />
+      <path d="M12 20.4s6.5-5.3 6.5-10.2a6.5 6.5 0 1 0-13 0c0 4.9 6.5 10.2 6.5 10.2Z" />
+      <circle cx="12" cy="10.1" r="2.3" />
     </>
   ),
   qr: (
     <>
-      <path d="M4.5 8.5v-3a1 1 0 0 1 1-1h3M19.5 8.5v-3a1 1 0 0 0-1-1h-3M4.5 15.5v3a1 1 0 0 0 1 1h3M19.5 15.5v3a1 1 0 0 1-1 1h-3" />
-      <rect x="8.4" y="8.4" width="3.1" height="3.1" rx=".7" />
-      <rect x="12.5" y="8.4" width="3.1" height="3.1" rx=".7" />
-      <rect x="8.4" y="12.5" width="3.1" height="3.1" rx=".7" />
-      <rect x="12.5" y="12.5" width="3.1" height="3.1" rx=".7" />
+      <path d="M4.6 8.6v-3a1 1 0 0 1 1-1h3M19.4 8.6v-3a1 1 0 0 0-1-1h-3M4.6 15.4v3a1 1 0 0 0 1 1h3M19.4 15.4v3a1 1 0 0 1-1 1h-3" />
+      <rect x="8.5" y="8.5" width="3" height="3" rx=".7" />
+      <rect x="12.5" y="8.5" width="3" height="3" rx=".7" />
+      <rect x="8.5" y="12.5" width="3" height="3" rx=".7" />
+      <rect x="12.5" y="12.5" width="3" height="3" rx=".7" />
     </>
   ),
   bell: (
@@ -38,79 +39,59 @@ const Icon = {
   ),
 }
 
+const Solid: Record<string, JSX.Element> = {
+  home: <path d="M12 3.6 3.8 10.5V19a1.6 1.6 0 0 0 1.6 1.6h4.1v-5.9h5v5.9h4.1A1.6 1.6 0 0 0 20.2 19v-8.5Z" />,
+  places: (
+    <path d="M12 21.2s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Zm0-8.6a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+  ),
+  qr: (
+    <path d="M4.2 4.2h5.6v5.6H4.2Zm1.8 1.8v2h2v-2Zm8.2-1.8h5.6v5.6h-5.6Zm1.8 1.8v2h2v-2ZM4.2 14.2h5.6v5.6H4.2Zm1.8 1.8v2h2v-2Zm8.2-1.8h2.2v2.2h-2.2Zm3.4 0h2.2v2.2h-2.2Zm-3.4 3.4h2.2v2.2h-2.2Zm3.4 0h2.2v2.2h-2.2Z" />
+  ),
+  bell: (
+    <path d="M12 2.4a6 6 0 0 0-6 6.2c0 5.2-2 6-2 6h16s-2-.8-2-6a6 6 0 0 0-6-6.2Zm-1.6 17.2a2 2 0 0 0 3.2 0Z" />
+  ),
+  me: <path d="M12 12a3.9 3.9 0 1 0 0-7.8A3.9 3.9 0 0 0 12 12Zm0 1.6c-4 0-7 2.6-7 5.6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1c0-3-3-5.6-7-5.6Z" />,
+}
+
+const tabs = [
+  { to: '/', key: 'home', label: 'Home' },
+  { to: '/places', key: 'places', label: 'Places' },
+  { to: '/checkin', key: 'qr', label: 'Check in' },
+  { to: '/activity', key: 'bell', label: 'Alerts' },
+  { to: '/me', key: 'me', label: 'Profile' },
+] as const
+
 export function BottomNav({ unread = 0 }: { unread?: number }) {
   const { pathname } = useLocation()
-  const { t } = useI18n()
-  const tabs = [
-    { to: '/', key: 'home' as const, label: t('home') },
-    { to: '/places', key: 'places' as const, label: t('places') },
-    { to: '/checkin', key: 'qr' as const, label: '' },
-    { to: '/activity', key: 'bell' as const, label: t('alerts') },
-    { to: '/me', key: 'me' as const, label: t('me') },
-  ]
 
   return (
     <nav className="glass sticky bottom-0 z-50 border-t border-hair">
-      <div className="mx-auto flex max-w-[520px] items-end justify-around px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3">
+      <div className="mx-auto flex max-w-[520px] items-center justify-around px-3 pb-[max(16px,env(safe-area-inset-bottom))] pt-3.5">
         {tabs.map((tab) => {
           const active = tab.to === '/' ? pathname === '/' : pathname.startsWith(tab.to)
-
-          if (tab.key === 'qr')
-            return (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                aria-label="Check in"
-                className="flex w-14 justify-center pb-0.5"
-              >
-                <span
-                  className="grid h-[56px] w-[56px] place-items-center rounded-full transition-transform active:scale-95"
-                  style={{
-                    background: 'var(--btn)',
-                    boxShadow: '0 8px 28px -6px var(--gold-glow), 0 2px 8px -2px rgba(0,0,0,.6)',
-                  }}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-[26px] w-[26px] fill-none stroke-[1.5]"
-                    stroke="var(--btn-fg)"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    {Icon.qr}
-                  </svg>
-                </span>
-              </NavLink>
-            )
-
           return (
             <NavLink
               key={tab.to}
               to={tab.to}
-              className="relative flex w-14 flex-col items-center gap-1.5 pb-1"
+              aria-label={tab.label}
+              className="relative grid h-11 w-11 place-items-center transition-transform active:scale-90"
             >
-              <span className="relative">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-[22px] w-[22px] fill-none stroke-[1.4] transition-colors"
-                  stroke={active ? 'var(--gold)' : 'var(--muted)'}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {Icon[tab.key]}
-                </svg>
-                {tab.key === 'bell' && unread > 0 && (
-                  <span className="absolute -right-2 -top-1.5 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-gold px-1 text-[9.5px] font-medium text-[#14110a]">
-                    {unread > 9 ? '9+' : unread}
-                  </span>
-                )}
-              </span>
-              <em
-                className="text-[9.5px] not-italic tracking-[0.06em] transition-colors"
-                style={{ color: active ? 'var(--gold-text)' : 'var(--muted)' }}
+              <svg
+                viewBox="0 0 24 24"
+                className="h-[25px] w-[25px] transition-colors duration-200"
+                fill={active ? 'var(--gold)' : 'none'}
+                stroke={active ? 'none' : 'var(--muted)'}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                {tab.label}
-              </em>
+                {active ? Solid[tab.key] : Outline[tab.key]}
+              </svg>
+              {tab.key === 'bell' && unread > 0 && (
+                <span className="absolute right-0.5 top-0.5 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-gold px-1 text-[9px] font-medium text-[#14110a]">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
             </NavLink>
           )
         })}

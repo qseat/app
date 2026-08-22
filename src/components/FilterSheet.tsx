@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Sheet } from './Sheet'
+import { PriceBand } from './PriceBand'
+import { PRICE_BAND_LABEL } from '../lib/format'
 import { useI18n } from '../lib/i18n'
 import type { Taxonomy } from '../data/types'
 import type { VenueFilters } from '../data/queries'
@@ -54,7 +56,10 @@ export function FilterSheet({
         <Group label="Price">
           {[1, 2, 3, 4].map((n) => (
             <Chip key={n} on={(draft.priceBands ?? []).includes(n)} onClick={() => toggleBand(n)}>
-              {'$'.repeat(n)}
+              <span className="flex items-center gap-1.5">
+                <PriceBand band={n} size={11} />
+                <span className="text-[10.5px] opacity-70">{PRICE_BAND_LABEL[n]}</span>
+              </span>
             </Chip>
           ))}
         </Group>

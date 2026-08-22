@@ -16,7 +16,8 @@ const SPACE_EMBED = 'venue_spaces!bookings_space_belongs_to_venue(name_en)'
 const VENUE_CARD = `
   id, slug, name_en, name_ar, price_band, area_id,
   areas(name_en, slug),
-  venue_media(storage_path, media_type, is_cover, display_order, focal_x, focal_y)
+  venue_media(storage_path, media_type, is_cover, display_order, focal_x, focal_y),
+  venue_hours(day_of_week, opens_at, closes_at, closes_next_day)
 `
 
 export async function fetchAreas(): Promise<Area[]> {

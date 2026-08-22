@@ -9,6 +9,7 @@ import { useAsync } from '../lib/useAsync'
 import { fetchVenuePoints, fetchVenues } from '../data/queries'
 import { useI18n } from '../lib/i18n'
 import { mediaUrl, focalStyle, W } from '../lib/media'
+import { PriceBand } from '../components/PriceBand'
 import type { VenueSummary } from '../data/types'
 
 const DOHA: L.LatLngTuple = [25.2854, 51.531]
@@ -115,9 +116,13 @@ function MapCard({ venue, onClose }: { venue: VenueSummary; onClose: () => void 
       </Link>
       <Link to={`/venue/${venue.slug}`} className="min-w-0 flex-1">
         <p className="truncate t-title text-[19px] leading-tight text-fg">{venue.name_en}</p>
-        <p className="t-meta mt-1 text-[9px] text-muted">
-          {venue.areas?.name_en}
-          {venue.price_band ? ` · ${'$'.repeat(venue.price_band)}` : ''}
+        <p className="t-meta mt-1 flex items-center gap-1.5 text-[10px]">
+          <span>{venue.areas?.name_en}</span>
+          {venue.price_band && (
+            <span className="text-goldt">
+              <PriceBand band={venue.price_band} size={10} />
+            </span>
+          )}
         </p>
         <p className="t-meta mt-2 text-[9px] text-goldt">Open this place ›</p>
       </Link>

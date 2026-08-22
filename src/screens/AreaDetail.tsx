@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { Screen, TopBar } from '../components/Screen'
 import { BottomNav } from '../components/BottomNav'
-import { VenueRow } from '../components/VenueCard'
+import { VenuePlate } from '../components/VenueCard'
 import { Spinner } from '../components/Spinner'
 import { Empty } from '../components/Empty'
 import { useAsync } from '../lib/useAsync'
@@ -29,8 +29,8 @@ export function AreaDetail() {
       {venues.data?.length === 0 && !venues.loading && (
         <Empty title="Nothing here yet" note="No published venues in this area — try another." />
       )}
-      <div className="px-5">
-        {venues.data?.map((v) => <VenueRow key={v.id} venue={v} />)}
+      <div className="space-y-3.5 px-5">
+        {venues.data?.map((v) => <VenuePlate key={v.id} venue={v} />)}
       </div>
       <div className="h-10" />
     </Screen>

@@ -45,7 +45,7 @@ export function Wordmark({ size = 22 }: { size?: number }) {
     <div className="flex items-center justify-center gap-3">
       <Mark size={size} className="text-fg" />
       <span
-        className="font-display uppercase text-goldt"
+        className="t-display uppercase text-goldt"
         style={{ fontSize: size * 0.68, letterSpacing: '0.42em', lineHeight: 1 }}
       >
         QSeat
